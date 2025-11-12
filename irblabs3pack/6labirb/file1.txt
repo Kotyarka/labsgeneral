@@ -1,0 +1,11 @@
+12345 Ivan Petrov CS01 2 2 3 5 4
+12346 Maria Ivanova CS02 4 5 4 3 2
+12347 Alexey Sidorov CS01 5 5 5 5 5
+12348 Elena Popova CS03 5 5 5 4 5
+12349 Dmitry Smirnov CS02 4 3 4 4 3
+12350 Olga Volkova CS01 5 4 5 5 4
+12348 Elena Lebedeva CS03 5 5 5 5 5
+12345 Ivan Ivanov CS01 5 5 5 5 5
+12345 Ivan Sidiriv CS01 5 4 5 3 4
+12345 Tayler Durden CS01 5 5 5 5 5
+1288282 John Ivanov M8O213 3 2 3 2 3 
