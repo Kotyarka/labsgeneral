@@ -1,393 +1,281 @@
 #include "../include/functions.h"
-#include "../include/student.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
-void test_parseId() {
-    printf("Testing parseId...\n");
+void test_stackInit() {
+    printf("Testing stackInit...\n");
     
-    // Test valid ID
-    int valid_id = 123;
-    assert(parseId(&valid_id) == OK);
+    Stack stack;
     
-    // Test zero ID
-    int zero_id = 0;
-    assert(parseId(&zero_id) == WRONG_STRUCT);
+    assert(stackInit(&stack, 1000) == OK);
+    assert(stack.capacity == 1000);
+    assert(stack.size == -1);
+    assert(stack.data != NULL);
+    deleteStack(&stack);
     
-    // Test NULL pointer
-    assert(parseId(NULL) == WRONG_STRUCT);
+    assert(stackInit(&stack, 1) == OK);
+    deleteStack(&stack);
     
-    printf("✓ parseId tests passed\n");
+    printf("✓ stackInit tests passed\n");
 }
 
-void test_parseNameSurname() {
-    printf("Testing parseNameSurname...\n");
+void test_isStackEmpty() {
+    printf("Testing isStackEmpty...\n");
     
-    // Test valid name
-    char valid_name[] = "John";
-    assert(parseNameSurname(valid_name) == OK);
+    Stack stack;
+    stackInit(&stack, 10);
     
-    // Test valid name with mixed case
-    char mixed_name[] = "McDonald";
-    assert(parseNameSurname(mixed_name) == OK);
+    assert(isStackEmpty(&stack) == 1);
     
-    // Test name with numbers
-    char number_name[] = "John123";
-    assert(parseNameSurname(number_name) == WRONG_STRUCT);
+    pushStack(&stack, 'A');
+    assert(isStackEmpty(&stack) == 0);
     
-    // Test name with spaces
-    char space_name[] = "John Doe";
-    assert(parseNameSurname(space_name) == WRONG_STRUCT);
+    popStack(&stack);
+    assert(isStackEmpty(&stack) == 1);
     
-    // Test name with special characters
-    char special_name[] = "John@Doe";
-    assert(parseNameSurname(special_name) == WRONG_STRUCT);
+    deleteStack(&stack);
     
-    // Test NULL pointer
-    assert(parseNameSurname(NULL) == WRONG_STRUCT);
-    
-    printf("✓ parseNameSurname tests passed\n");
+    printf("✓ isStackEmpty tests passed\n");
 }
 
-void test_parseGroup() {
-    printf("Testing parseGroup...\n");
+void test_pushStack() {
+    printf("Testing pushStack...\n");
     
-    // Test valid group (always returns OK in current implementation)
-    char valid_group[] = "CS-101";
-    assert(parseGroup(valid_group) == OK);
+    Stack stack;
+    stackInit(&stack, 2);
     
-    // Test empty group
-    char empty_group[] = "";
-    assert(parseGroup(empty_group) == OK);
+    assert(pushStack(&stack, 'A') == OK);
+    assert(stack.size == 0);
+    assert(stack.data[0] == 'A');
     
-    // Test NULL pointer
-    assert(parseGroup(NULL) == WRONG_STRUCT);
+    assert(pushStack(&stack, 'B') == OK);
+    assert(pushStack(&stack, 'C') == OK);
+    assert(stack.capacity > 2);
     
-    printf("✓ parseGroup tests passed\n");
+    assert(pushStack(&stack, 'D') == OK);
+    assert(stack.size == 3);
+    
+    deleteStack(&stack);
+    
+    printf("✓ pushStack tests passed\n");
 }
 
-void test_parseScores() {
-    printf("Testing parseScores...\n");
+void test_topStack() {
+    printf("Testing topStack...\n");
     
-    // Test valid scores
-    unsigned char valid_scores[] = {'A', 'B', 'C', 'D', 'E'};
-    assert(parseScores(valid_scores) == OK);
+    Stack stack;
+    stackInit(&stack, 10);
     
-    // Test scores with numbers
-    unsigned char number_scores[] = {'1', '2', '3', '4', '5'};
-    assert(parseScores(number_scores) == OK);
+    assert(topStack(&stack) == ' ');
     
-    // Test NULL pointer
-    assert(parseScores(NULL) == WRONG_STRUCT);
+    pushStack(&stack, 'A');
+    char result = topStack(&stack);
+    assert(result == 'A');
+    assert(stack.size == 0);
     
-    printf("✓ parseScores tests passed\n");
+    pushStack(&stack, 'B');
+    result = topStack(&stack);
+    assert(result == 'B');
+    assert(stack.size == 1);
+    
+    deleteStack(&stack);
+    
+    printf("✓ topStack tests passed\n");
 }
 
-void test_findType() {
-    printf("Testing findType...\n");
+void test_popStack() {
+    printf("Testing popStack...\n");
     
-    Type type;
+    Stack stack;
+    stackInit(&stack, 10);
     
-    // Test valid types
-    char id_str[] = "id\n";
-    assert(findType(id_str, &type) == OK);
-    assert(type == ID);
+    pushStack(&stack, 'A');
+    pushStack(&stack, 'B');
     
-    char name_str[] = "name\n";
-    assert(findType(name_str, &type) == OK);
-    assert(type == NAME);
+    assert(popStack(&stack) == OK);
+    assert(stack.size == 0);
+    assert(topStack(&stack) == 'A');
     
-    char surname_str[] = "surname\n";
-    assert(findType(surname_str, &type) == OK);
-    assert(type == SURNAME);
+    assert(popStack(&stack) == OK);
+    assert(stack.size == -1);
     
-    char group_str[] = "group\n";
-    assert(findType(group_str, &type) == OK);
-    assert(type == GROUP);
     
-    // Test invalid type
-    char invalid_str[] = "invalid\n";
-    assert(findType(invalid_str, &type) == WRONG_STRUCT);
+    deleteStack(&stack);
     
-    // Test NULL pointers
-    assert(findType(NULL, &type) == NULL_POINTER);
-    assert(findType(id_str, NULL) == NULL_POINTER);
-    
-    printf("✓ findType tests passed\n");
+    printf("✓ popStack tests passed\n");
 }
 
-void test_compId() {
-    printf("Testing compId...\n");
+void test_deleteStack() {
+    printf("Testing deleteStack...\n");
     
-    Student student1 = {100, "John", "Doe", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student2 = {200, "Jane", "Smith", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student3 = {100, "Bob", "Brown", "CS101", {'A', 'B', 'C', 'D', 'E'}};
+    Stack stack;
+    stackInit(&stack, 10);
     
-    // Test student1 < student2
-    assert(compId(&student1, &student2) < 0);
+    assert(deleteStack(&stack) == OK);
     
-    // Test student2 > student1
-    assert(compId(&student2, &student1) > 0);
-    
-    // Test student1 == student3
-    assert(compId(&student1, &student3) == 0);
-    
-    printf("✓ compId tests passed\n");
+    printf("✓ deleteStack tests passed\n");
 }
 
-void test_compName() {
-    printf("Testing compName...\n");
+void test_getSize() {
+    printf("Testing getSize...\n");
     
-    Student student1 = {100, "Alice", "Doe", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student2 = {200, "Bob", "Smith", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student3 = {300, "Alice", "Brown", "CS101", {'A', 'B', 'C', 'D', 'E'}};
+    Stack stack;
+    stackInit(&stack, 10);
     
-    // Test student1 < student2
-    assert(compName(&student1, &student2) < 0);
+    assert(getSize(&stack) == 0);
     
-    // Test student2 > student1
-    assert(compName(&student2, &student1) > 0);
+    pushStack(&stack, 'A');
+    assert(getSize(&stack) == 1);
     
-    // Test student1 == student3
-    assert(compName(&student1, &student3) == 0);
+    pushStack(&stack, 'B');
+    pushStack(&stack, 'C');
+    assert(getSize(&stack) == 3);
     
-    printf("✓ compName tests passed\n");
+    popStack(&stack);
+    assert(getSize(&stack) == 2);
+    
+    deleteStack(&stack);
+    
+    printf("✓ getSize tests passed\n");
 }
 
-void test_compSurname() {
-    printf("Testing compSurname...\n");
+void test_check_brackets_basic() {
+    printf("Testing checkerBrackets basic cases...\n");
     
-    Student student1 = {100, "John", "Adams", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student2 = {200, "Jane", "Zoe", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student3 = {300, "Bob", "Adams", "CS101", {'A', 'B', 'C', 'D', 'E'}};
+    assert(checkerBrackets("()") == 1);
+    assert(checkerBrackets("[]") == 1);
+    assert(checkerBrackets("{}") == 1);
+    assert(checkerBrackets("<>") == 1);
+    assert(checkerBrackets("()[]{}<>") == 1);
+    assert(checkerBrackets("([{<>}])") == 1);
+    assert(checkerBrackets("") == 1);
+    assert(checkerBrackets(NULL) == 0);
     
-    // Test student1 < student2
-    assert(compSurname(&student1, &student2) < 0);
+    assert(checkerBrackets("(") == 0);
+    assert(checkerBrackets(")") == 0);
+    assert(checkerBrackets("([)]") == 0);
+    assert(checkerBrackets("({)}") == 0);
+    assert(checkerBrackets("<[>]") == 0);
     
-    // Test student2 > student1
-    assert(compSurname(&student2, &student1) > 0);
-    
-    // Test student1 == student3
-    assert(compSurname(&student1, &student3) == 0);
-    
-    printf("✓ compSurname tests passed\n");
+    printf("✓ checkerBrackets basic tests passed\n");
 }
 
-void test_compGroup() {
-    printf("Testing compGroup...\n");
+void test_check_brackets_with_text() {
+    printf("Testing checkerBrackets with text...\n");
     
-    Student student1 = {100, "John", "Doe", "CS101", {'A', 'B', 'C', 'D', 'E'}};
-    Student student2 = {200, "Jane", "Smith", "CS201", {'A', 'B', 'C', 'D', 'E'}};
-    Student student3 = {300, "Bob", "Brown", "CS101", {'A', 'B', 'C', 'D', 'E'}};
+    assert(checkerBrackets("(hello world)") == 1);
+    assert(checkerBrackets("array[123] + object{key: value}") == 1);
+    assert(checkerBrackets("function<int(int)> f;") == 1);
+    assert(checkerBrackets("a = (b + c) * [d - e] / {f % g} <h>") == 1);
     
-    // Test student1 < student2
-    assert(compGroup(&student1, &student2) < 0);
+    assert(checkerBrackets("(hello world") == 0);
+    assert(checkerBrackets("array[123] + object{key: value") == 0);
+    assert(checkerBrackets("if (x > 0) { y = x * 2; ") == 0);
+    assert(checkerBrackets("function<int(int))> f;") == 0);
     
-    // Test student2 > student1
-    assert(compGroup(&student2, &student1) > 0);
-    
-    // Test student1 == student3
-    assert(compGroup(&student1, &student3) == 0);
-    
-    printf("✓ compGroup tests passed\n");
+    printf("✓ checkerBrackets with text tests passed\n");
 }
 
-void test_sort() {
-    printf("Testing sort...\n");
+void test_check_brackets_complex() {
+    printf("Testing checkerBrackets complex cases...\n");
     
-    Student students[3] = {
-        {300, "Charlie", "Brown", "CS201", {'A', 'B', 'C', 'D', 'E'}},
-        {100, "Alice", "Adams", "CS101", {'A', 'B', 'C', 'D', 'E'}},
-        {200, "Bob", "Clark", "CS101", {'A', 'B', 'C', 'D', 'E'}}
-    };
-    int size = 3;
+    assert(checkerBrackets("((([{<>}])))") == 1);
+    assert(checkerBrackets("<({[]})>") == 1);
+    assert(checkerBrackets("([{<((()))>}])") == 1);
+    assert(checkerBrackets("({[<>]})") == 1);
+    assert(checkerBrackets("<{[()]}>") == 1);
     
-    // Test sorting by ID
-    assert(sort(students, &size, ID) == OK);
-    assert(students[0].id == 100);
-    assert(students[1].id == 200);
-    assert(students[2].id == 300);
+    assert(checkerBrackets("((([{<>}))))") == 0);
+    assert(checkerBrackets("<({[})>") == 0);
+    assert(checkerBrackets("([{<((())>}])") == 0);
     
-    // Test sorting by name
-    assert(sort(students, &size, NAME) == OK);
-    assert(strcmp(students[0].name, "Alice") == 0);
-    assert(strcmp(students[1].name, "Bob") == 0);
-    assert(strcmp(students[2].name, "Charlie") == 0);
-    
-    // Test NULL pointers
-    assert(sort(NULL, &size, ID) == NULL_POINTER);
-    assert(sort(students, NULL, ID) == NULL_POINTER);
-    
-    printf("✓ sort tests passed\n");
+    printf("✓ checkerBrackets complex tests passed\n");
 }
 
-void test_average() {
-    printf("Testing average...\n");
+void test_check_brackets_edge_cases() {
+    printf("Testing checkerBrackets edge cases...\n");
     
-    // Используем числовые значения для оценок, а не буквы
-    // 'A' = 65, 'B' = 66, но лучше использовать явные числовые значения
-    Student students[3] = {
-        {100, "John", "Doe", "CS101", {90, 90, 90, 90, 90}}, // Average: 90.0
-        {200, "Jane", "Smith", "CS101", {85, 85, 85, 85, 85}}, // Average: 85.0
-        {300, "Bob", "Brown", "CS101", {90, 90, 90, 90, 90}}  // Average: 90.0
-    };
-    int size = 3;
-    Student foundStuds[3];
-    double avMax;
-    int sizeAv = 0;
+    assert(checkerBrackets("(((([[[{{{<<<") == 0);
+    assert(checkerBrackets("))))]}}>>))") == 0);
+    assert(checkerBrackets("a") == 1);
+    assert(checkerBrackets("1") == 1);
+    assert(checkerBrackets(" ") == 1);
+    assert(checkerBrackets("@") == 1);
     
-    // Test average calculation
-    assert(average(students, &size, foundStuds, &avMax, &sizeAv) == OK);
-    assert(sizeAv == 2); // Should find two students with max average (90.0)
-    
-    // Verify the correct students were found
-    bool foundJohn = false, foundBob = false;
-    for (int i = 0; i < sizeAv; i++) {
-        if (foundStuds[i].id == 100) foundJohn = true;
-        if (foundStuds[i].id == 300) foundBob = true;
+    char long_balanced[1000];
+    int pos = 0;
+    for (int i = 0; i < 100; i++) {
+        long_balanced[pos++] = '(';
+        long_balanced[pos++] = '[';
+        long_balanced[pos++] = '{';
+        long_balanced[pos++] = '<';
     }
-    assert(foundJohn && foundBob);
+    for (int i = 0; i < 100; i++) {
+        long_balanced[pos++] = '>';
+        long_balanced[pos++] = '}';
+        long_balanced[pos++] = ']';
+        long_balanced[pos++] = ')';
+    }
+    long_balanced[pos] = '\0';
+    assert(checkerBrackets(long_balanced) == 1);
     
-    // Test NULL pointers
-    assert(average(NULL, &size, foundStuds, &avMax, &sizeAv) == NULL_POINTER);
-    assert(average(students, NULL, foundStuds, &avMax, &sizeAv) == NULL_POINTER);
-    assert(average(students, &size, NULL, &avMax, &sizeAv) == NULL_POINTER);
-    assert(average(students, &size, foundStuds, NULL, &sizeAv) == NULL_POINTER);
-    assert(average(students, &size, foundStuds, &avMax, NULL) == NULL_POINTER);
+    char long_unbalanced[1000];
+    pos = 0;
+    for (int i = 0; i < 100; i++) {
+        long_unbalanced[pos++] = '(';
+        long_unbalanced[pos++] = '[';
+        long_unbalanced[pos++] = '{';
+        long_unbalanced[pos++] = '<';
+    }
+    for (int i = 0; i < 99; i++) {
+        long_unbalanced[pos++] = '>';
+        long_unbalanced[pos++] = '}';
+        long_unbalanced[pos++] = ']';
+        long_unbalanced[pos++] = ')';
+    }
+    long_unbalanced[pos] = '\0';
+    assert(checkerBrackets(long_unbalanced) == 0);
     
-    printf("✓ average tests passed\n");
-}
-void test_find() {
-    printf("Testing find...\n");
-    
-    Student students[3] = {
-        {100, "John", "Doe", "CS101", {'A', 'B', 'C', 'D', 'E'}},
-        {200, "Jane", "Doe", "CS201", {'A', 'B', 'C', 'D', 'E'}},
-        {300, "Bob", "Smith", "CS101", {'A', 'B', 'C', 'D', 'E'}}
-    };
-    int sizeStuds = 3;
-    int sizeFound = 0;
-    int capacityFound = 10;
-    bool isFound = false;
-    
-    Student* found = (Student*)malloc(capacityFound * sizeof(Student));
-    
-    // Test finding by surname
-    char surname_to_find[] = "Doe";
-    assert(find(students, surname_to_find, &found, &sizeStuds, &sizeFound, &capacityFound, SURNAME, &isFound) == OK);
-    assert(isFound == true);
-    assert(sizeFound == 2);
-    
-    // Test finding by ID
-    char id_to_find[] = "200";
-    sizeFound = 0;
-    isFound = false;
-    assert(find(students, id_to_find, &found, &sizeStuds, &sizeFound, &capacityFound, ID, &isFound) == OK);
-    assert(isFound == true);
-    assert(sizeFound == 1);
-    assert(found[0].id == 200);
-    
-    // Test finding non-existent
-    char not_found[] = "NonExistent";
-    sizeFound = 0;
-    isFound = false;
-    assert(find(students, not_found, &found, &sizeStuds, &sizeFound, &capacityFound, NAME, &isFound) == OK);
-    assert(isFound == false);
-    assert(sizeFound == 0);
-    
-    free(found);
-    
-    printf("✓ find tests passed\n");
+    printf("✓ checkerBrackets edge cases tests passed\n");
 }
 
-void test_print() {
-    printf("Testing print...\n");
+void test_check_brackets_performance() {
+    printf("Testing checkerBrackets performance...\n");
     
-    Student students[2] = {
-        {100, "John", "Doe", "CS101", {'A', 'B', 'C', 'D', 'E'}},
-        {200, "Jane", "Smith", "CS201", {'F', 'G', 'H', 'I', 'J'}}
-    };
-    int size = 2;
+    char max_brackets[MAX_STACK_SIZE * 2 + 1];
+    int pos = 0;
     
-    // Test printing to file
-    FILE* test_file = fopen("test_output.txt", "w");
-    assert(test_file != NULL);
-    assert(print(test_file, students, &size) == OK);
-    fclose(test_file);
+    for (int i = 0; i < MAX_STACK_SIZE; i++) {
+        max_brackets[pos++] = '(';
+    }
+    for (int i = 0; i < MAX_STACK_SIZE; i++) {
+        max_brackets[pos++] = ')';
+    }
+    max_brackets[pos] = '\0';
     
-    // Test NULL pointers - create new file for each test
-    FILE* test_file2 = fopen("test_output2.txt", "w");
-    assert(test_file2 != NULL);
-    assert(print(NULL, students, &size) == NULL_POINTER);
-    fclose(test_file2);
+    assert(checkerBrackets(max_brackets) == 1);
     
-    FILE* test_file3 = fopen("test_output3.txt", "w");
-    assert(test_file3 != NULL);
-    assert(print(test_file3, NULL, &size) == NULL_POINTER);
-    fclose(test_file3);
-    
-    FILE* test_file4 = fopen("test_output4.txt", "w");
-    assert(test_file4 != NULL);
-    assert(print(test_file4, students, NULL) == NULL_POINTER);
-    fclose(test_file4);
-    
-    // Clean up
-    remove("test_output.txt");
-    remove("test_output2.txt");
-    remove("test_output3.txt");
-    remove("test_output4.txt");
-    
-    printf("✓ print tests passed\n");
-}
-
-void test_edge_cases() {
-    printf("Testing edge cases...\n");
-    
-    // Test with single student instead of zero-size array
-    Student single_student = {1, "A", "B", "C", {'A', 'A', 'A', 'A', 'A'}};
-    Student single_array[1] = {single_student};
-    int single_size = 1;
-    Student single_found[1];
-    double single_avMax;
-    int single_sizeAv = 0;
-    
-    assert(average(single_array, &single_size, single_found, &single_avMax, &single_sizeAv) == OK);
-    assert(single_sizeAv == 1);
-    
-    // Test with minimum values - use int instead of unsigned int for ID
-    Student min_student = {1, "A", "B", "C", {'A', 'A', 'A', 'A', 'A'}};
-    int min_id = min_student.id; // Extract ID as int for testing parseId
-    Student min_array[1] = {min_student};
-    int min_size = 1;
-    
-    assert(parseId(&min_id) == OK);
-    assert(parseNameSurname(min_student.name) == OK);
-    assert(parseNameSurname(min_student.surname) == OK);
-    assert(parseGroup(min_student.group) == OK);
-    
-    printf("✓ Edge cases tests passed\n");
+    printf("✓ checkerBrackets performance tests passed\n");
 }
 
 int main() {
-    printf("Starting comprehensive tests for student management system...\n\n");
+    printf("Starting comprehensive tests for bracket checker...\n\n");
     
-    test_parseId();
-    test_parseNameSurname();
-    test_parseGroup();
-    test_parseScores();
-    test_findType();
-    test_compId();
-    test_compName();
-    test_compSurname();
-    test_compGroup();
-    test_sort();
-    test_average();
-    test_find();
-    test_print();
-    test_edge_cases();
+    test_stackInit();
+    test_isStackEmpty();
+    test_pushStack();
+    test_topStack();
+    test_popStack();
+    test_deleteStack();
+    test_getSize();
+    test_check_brackets_basic();
+    test_check_brackets_with_text();
+    test_check_brackets_complex();
+    test_check_brackets_edge_cases();
+    test_check_brackets_performance();
     
-    printf("\nAll student management system tests passed! ✓\n");
+    printf("\nAll bracket checker tests passed! ✓\n");
     return 0;
 }

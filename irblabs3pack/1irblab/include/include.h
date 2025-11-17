@@ -17,4 +17,11 @@ typedef enum {
     BAD_BASE = 6
 } errorCodes;
 
+
+errorCodes convertToBase(int decimal, char* result, int r);
+int add(int a, int b);
+int strSize(const char *str);
+errorCodes reverse(char* array);
+errorCodes rightShift(char* array);
+
 #endif

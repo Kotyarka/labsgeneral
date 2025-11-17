@@ -22,11 +22,11 @@ $(TEST_PROGRAM): $(TEST_OBJECTS)
 main.o: main.c include/functions.h
 	$(CC) $(CFLAGS) -Iinclude -c main.c -o main.o
 
-source/functions.o: source/functions.c include/functions.h include/errors_macro.h
+source/functions.o: source/functions.c include/functions.h 
 	$(CC) $(CFLAGS) -Iinclude -c source/functions.c -o source/functions.o
 
-tests/tests.o: tests/tests.c include/functions.h include/errors_macro.h
-	$(CC) $(CFLAGS) -Iinclude -Wno-memset-transposed-args -Wno-stringop-truncation -Wno-nonnull -Wno-unused-variable -Wno-stringop-overread -c tests/tests.c -o tests/tests.o
+tests/tests.o: tests/tests.c include/functions.h
+	$(CC) $(CFLAGS) -Iinclude -c tests/tests.c -o tests/tests.o
 
 test: $(TEST_PROGRAM)
 	@echo "=== Running custom printf tests ==="
