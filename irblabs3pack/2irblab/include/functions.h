@@ -108,6 +108,17 @@ static void VECTOR_NAME##_copy(VECTOR_NAME *dest, const VECTOR_NAME *src) { \
 static VECTOR_NAME* VECTOR_NAME##_copy_new(const VECTOR_NAME *src) { \
     if (!src) return NULL; \
     \
+    VECTOR_NAME *new_vec = (VECTOR_NAME*)malloc(sizeof(VECTOR_NAME)) \
+    if (new_vec) { \
+        new_vec->data = NULL; \
+        new_vec->size = 0; \
+        new_vec->capacity = 0; \
+        new_vec->CopyFunc = src->CopyFunc; \
+        new_vec->DeleteFunc = src->DeleteFunc; \
+        VECTOR_NAME##_copy(new_vec, src); \
+    } \
+    return new_vec; \
+} \
 void push_back_vector(Vector *v, VECTOR_TYPE value);
 void delete_at_vector(Vector *v, size_t index);
 VECTOR_TYPE get_at_vector(const Vector *v, size_t index);
