@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define VECTOR_DEFINE(VECTOR_TYPE)                                                          \
+#define VECTOR_DEFINE(VECTOR_TYPE)                                                                       \
     typedef struct                                                                                       \
     {                                                                                                    \
         VECTOR_TYPE *data;                                                                               \
@@ -11,13 +11,13 @@
         VECTOR_TYPE (*CopyFunc)(VECTOR_TYPE);                                                            \
         void (*DeleteFunc)(VECTOR_TYPE);                                                                 \
                                                                                                          \
-    } Vector;                                                                                       \
+    } Vector;                                                                                            \
                                                                                                          \
-    static Vector Vector##_create(size_t initial_capacity,                                     \
-                                            VECTOR_TYPE (*CopyFunc)(VECTOR_TYPE),                        \
-                                            void (*DeleteFunc)(VECTOR_TYPE))                             \
+    static Vector Vector##_create(size_t initial_capacity,                                               \
+                                  VECTOR_TYPE (*CopyFunc)(VECTOR_TYPE),                                  \
+                                  void (*DeleteFunc)(VECTOR_TYPE))                                       \
     {                                                                                                    \
-        Vector v;                                                                                   \
+        Vector v;                                                                                        \
         v.data = NULL;                                                                                   \
         v.size = 0;                                                                                      \
         v.capacity = 0;                                                                                  \
@@ -34,7 +34,7 @@
         }                                                                                                \
         return v;                                                                                        \
     }                                                                                                    \
-    static void Vector##_erase(Vector *v)                                                      \
+    static void Vector##_erase(Vector *v)                                                                \
     {                                                                                                    \
         if (v && v->data && v->DeleteFunc)                                                               \
         {                                                                                                \
@@ -55,7 +55,7 @@
         }                                                                                                \
     }                                                                                                    \
                                                                                                          \
-    static int Vector##_is_equal(const Vector *v1, const Vector *v2)                      \
+    static int Vector##_is_equal(const Vector *v1, const Vector *v2)                                     \
     {                                                                                                    \
         if (!v1 || !v2)                                                                                  \
             return 0;                                                                                    \
@@ -92,12 +92,12 @@
         return 1;                                                                                        \
     }                                                                                                    \
                                                                                                          \
-    static void Vector##_copy(Vector *dest, const Vector *src)                            \
+    static void Vector##_copy(Vector *dest, const Vector *src)                                           \
     {                                                                                                    \
         if (!dest || !src)                                                                               \
             return;                                                                                      \
                                                                                                          \
-        Vector##_erase(dest);                                                                       \
+        Vector##_erase(dest);                                                                            \
                                                                                                          \
         dest->CopyFunc = src->CopyFunc;                                                                  \
         dest->DeleteFunc = src->DeleteFunc;                                                              \
@@ -125,23 +125,23 @@
         }                                                                                                \
     }                                                                                                    \
                                                                                                          \
-    static Vector *Vector##_copy_new(const Vector *src)                                   \
+    static Vector *Vector##_copy_new(const Vector *src)                                                  \
     {                                                                                                    \
         if (!src)                                                                                        \
             return NULL;                                                                                 \
                                                                                                          \
-        Vector *new_vec = (Vector *)malloc(sizeof(Vector)) if (new_vec)                   \
+        Vector *new_vec = (Vector *)malloc(sizeof(Vector)) if (new_vec)                                  \
         {                                                                                                \
             new_vec->data = NULL;                                                                        \
             new_vec->size = 0;                                                                           \
             new_vec->capacity = 0;                                                                       \
             new_vec->CopyFunc = src->CopyFunc;                                                           \
             new_vec->DeleteFunc = src->DeleteFunc;                                                       \
-            Vector##_copy(new_vec, src);                                                            \
+            Vector##_copy(new_vec, src);                                                                 \
         }                                                                                                \
         return new_vec;                                                                                  \
     }                                                                                                    \
-    static void Vector##_push_back(Vector *v, VECTOR_TYPE value)                               \
+    static void Vector##_push_back(Vector *v, VECTOR_TYPE value)                                         \
     {                                                                                                    \
         if (!v)                                                                                          \
             return;                                                                                      \
@@ -167,7 +167,7 @@
         v->size++;                                                                                       \
     }                                                                                                    \
                                                                                                          \
-    static void Vector##_delete_at(Vector *v, size_t index)                                    \
+    static void Vector##_delete_at(Vector *v, size_t index)                                              \
     {                                                                                                    \
         if (!v || !v->data || index >= v->size)                                                          \
             return;                                                                                      \
@@ -184,7 +184,7 @@
         v->size--;                                                                                       \
     }                                                                                                    \
                                                                                                          \
-    static VECTOR_TYPE Vector##_get_at(const Vector *v, size_t index)                          \
+    static VECTOR_TYPE Vector##_get_at(const Vector *v, size_t index)                                    \
     {                                                                                                    \
         if (!v || !v->data || index >= v->size)                                                          \
         {                                                                                                \
@@ -201,10 +201,10 @@
             return v->data[index];                                                                       \
         }                                                                                                \
     }                                                                                                    \
-    static void Vector##_delete(Vector *v)                                                     \
+    static void Vector##_delete(Vector *v)                                                               \
     {                                                                                                    \
         if (!v)                                                                                          \
             return;                                                                                      \
-        Vector##_erase(v);                                                                          \
+        Vector##_erase(v);                                                                               \
         free(v);                                                                                         \
     }
