@@ -119,7 +119,48 @@ static VECTOR_NAME* VECTOR_NAME##_copy_new(const VECTOR_NAME *src) { \
     } \
     return new_vec; \
 } \
-void push_back_vector(Vector *v, VECTOR_TYPE value);
-void delete_at_vector(Vector *v, size_t index);
-VECTOR_TYPE get_at_vector(const Vector *v, size_t index);
-delete_vector(Vector *v);
+static void VECTOR_NAME##_push_back(VECTOR_NAME *v, VECTOR_TYPE value) { \
+    if (!v) return; \
+    \
+    if (v->size >= v->capacity) { \
+        size_t new_capacity = (v->capacity == 0) ? 4 : v->capacity * 2; \
+        VECTOR_TYPE *new_data = (VECTOR_TYPE*)realloc(v->data, new_capacity * sizeof(VECTOR_TYPE)); \
+        if (!new_data) return; \
+        v->data = new_data; \
+        v->capacity = new_capacity; \
+    } \
+    \
+    if (v->CopyFunc) { \
+        v->data[v->size] = v->CopyFunc(value); \
+    } else { \
+        v->data[v->size] = value; \
+    } \
+    v->size++; \
+} \
+\
+static void VECTOR_NAME##_delete_at(VECTOR_NAME *v, size_t index) { \
+    if (!v || !v->data || index >= v->size) return; \
+    \
+    if (v->DeleteFunc) { \
+        v->DeleteFunc(v->data[index]); \
+    } \
+    \
+    for (size_t i = index; i < v->size - 1; i++) { \
+        v->data[i] = v->data[i + 1]; \
+    } \
+    v->size--; \
+} \
+\
+static VECTOR_TYPE VECTOR_NAME##_get_at(const VECTOR_NAME *v, size_t index) { \
+    if (!v || !v->data || index >= v->size) { \
+        VECTOR_TYPE empty = {0}; \
+        return empty; \
+    } \
+    \
+    if (v->CopyFunc) { \
+        return v->CopyFunc(v->data[index]); \
+    } else { \
+        return v->data[index]; \
+    } \
+} \
+
