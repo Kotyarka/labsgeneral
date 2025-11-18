@@ -105,7 +105,9 @@ static void VECTOR_NAME##_copy(VECTOR_NAME *dest, const VECTOR_NAME *src) { \
     } \
 } \
 \
-Vector *copy_vector_new(const Vector *src);
+static VECTOR_NAME* VECTOR_NAME##_copy_new(const VECTOR_NAME *src) { \
+    if (!src) return NULL; \
+    \
 void push_back_vector(Vector *v, VECTOR_TYPE value);
 void delete_at_vector(Vector *v, size_t index);
 VECTOR_TYPE get_at_vector(const Vector *v, size_t index);
