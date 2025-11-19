@@ -13,9 +13,9 @@
                                                                                                          \
     } Vector;                                                                                            \
                                                                                                          \
-    Vector create_vector(size_t initial_capacity,                                               \
-                                  VECTOR_TYPE (*CopyFunc)(VECTOR_TYPE),                                  \
-                                  void (*DeleteFunc)(VECTOR_TYPE))                                       \
+    Vector create_vector(size_t initial_capacity,                                                        \
+                         VECTOR_TYPE (*CopyFunc)(VECTOR_TYPE),                                           \
+                         void (*DeleteFunc)(VECTOR_TYPE))                                                \
     {                                                                                                    \
         Vector v;                                                                                        \
         v.data = NULL;                                                                                   \
@@ -34,7 +34,7 @@
         }                                                                                                \
         return v;                                                                                        \
     }                                                                                                    \
-    void erase_vector(Vector *v)                                                                \
+    void erase_vector(Vector *v)                                                                         \
     {                                                                                                    \
         if (v && v->data && v->DeleteFunc)                                                               \
         {                                                                                                \
@@ -55,7 +55,7 @@
         }                                                                                                \
     }                                                                                                    \
                                                                                                          \
-    int is_equal_vector(const Vector *v1, const Vector *v2)                                     \
+    int is_equal_vector(const Vector *v1, const Vector *v2)                                              \
     {                                                                                                    \
         if (!v1 || !v2)                                                                                  \
             return 0;                                                                                    \
@@ -92,12 +92,12 @@
         return 1;                                                                                        \
     }                                                                                                    \
                                                                                                          \
-    void copy_vector(Vector *dest, const Vector *src)                                           \
+    void copy_vector(Vector *dest, const Vector *src)                                                    \
     {                                                                                                    \
         if (!dest || !src)                                                                               \
             return;                                                                                      \
                                                                                                          \
-        erase_vector(dest);                                                                            \
+        erase_vector(dest);                                                                              \
                                                                                                          \
         dest->CopyFunc = src->CopyFunc;                                                                  \
         dest->DeleteFunc = src->DeleteFunc;                                                              \
@@ -125,23 +125,24 @@
         }                                                                                                \
     }                                                                                                    \
                                                                                                          \
-    Vector *copy_vector_new(const Vector *src)                                                  \
+    Vector *copy_vector_new(const Vector *src)                                                           \
     {                                                                                                    \
         if (!src)                                                                                        \
             return NULL;                                                                                 \
                                                                                                          \
-        Vector *new_vec = (Vector *)malloc(sizeof(Vector)) if (new_vec)                                  \
+        Vector *new_vec = (Vector *)malloc(sizeof(Vector));                                              \
+        if (new_vec)                                                                                     \
         {                                                                                                \
             new_vec->data = NULL;                                                                        \
             new_vec->size = 0;                                                                           \
             new_vec->capacity = 0;                                                                       \
             new_vec->CopyFunc = src->CopyFunc;                                                           \
             new_vec->DeleteFunc = src->DeleteFunc;                                                       \
-            Vector##_copy(new_vec, src);                                                                 \
+            copy_vector(new_vec, src);                                                                   \
         }                                                                                                \
         return new_vec;                                                                                  \
     }                                                                                                    \
-    void push_back_vector(Vector *v, VECTOR_TYPE value)                                         \
+    void push_back_vector(Vector *v, VECTOR_TYPE value)                                                  \
     {                                                                                                    \
         if (!v)                                                                                          \
             return;                                                                                      \
@@ -167,7 +168,7 @@
         v->size++;                                                                                       \
     }                                                                                                    \
                                                                                                          \
-    void delete_at_vector(Vector *v, size_t index)                                              \
+    void delete_at_vector(Vector *v, size_t index)                                                       \
     {                                                                                                    \
         if (!v || !v->data || index >= v->size)                                                          \
             return;                                                                                      \
@@ -184,7 +185,7 @@
         v->size--;                                                                                       \
     }                                                                                                    \
                                                                                                          \
-    VECTOR_TYPE get_at_vector(const Vector *v, size_t index)                                    \
+    VECTOR_TYPE get_at_vector(const Vector *v, size_t index)                                             \
     {                                                                                                    \
         if (!v || !v->data || index >= v->size)                                                          \
         {                                                                                                \
@@ -201,10 +202,10 @@
             return v->data[index];                                                                       \
         }                                                                                                \
     }                                                                                                    \
-    void delete_vector(Vector *v)                                                               \
+    void delete_vector(Vector *v)                                                                        \
     {                                                                                                    \
         if (!v)                                                                                          \
             return;                                                                                      \
-        erase_vector(v);                                                                               \
+        erase_vector(v);                                                                                 \
         free(v);                                                                                         \
     }
