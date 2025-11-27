@@ -197,4 +197,51 @@ void delete_at_list(LinkedList *list, size_t index) {
     list->size--;
 }
 
+Liver* get_at_list(const LinkedList *list, size_t index) {
+    if (list == NULL || index >= list->size) {
+        fprintf(stderr, "Invalid index\n");
+        return 0;
+    }
+    
+    Node *current = list->head;
+    for (size_t i = 0; i < index; i++) {
+        current = current->next;
+    }
+    
+    return current->data;
+}
+
+int is_equal_list(const LinkedList *l1, const LinkedList *l2) {
+    if (l1 == NULL || l2 == NULL) return 0;
+    if (l1->size != l2->size) return 0;
+    
+    Node *node1 = l1->head;
+    Node *node2 = l2->head;
+    
+    while (node1 != NULL && node2 != NULL) {
+        if (node1->data != node2->data) {
+            return 0;
+        }
+        node1 = node1->next;
+        node2 = node2->next;
+    }
+    
+    return 1;
+}
+
+void push_stack(LinkedList *stack, Liver* value) {
+    push_front_list(stack, value);
+}
+
+Liver* pop_stack(LinkedList *stack) {
+    return pop_front_list(stack);
+}
+
+Liver* peek_stack(const LinkedList *stack) {
+    if (stack == NULL || stack->head == NULL) {
+        fprintf(stderr, "Stack is empty\n");
+        return 0;
+    }
+    return stack->head->data;
+}
 
