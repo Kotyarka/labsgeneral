@@ -273,3 +273,162 @@ LinkedList read_from_file(const char *filename) {
     printf("Прочитано %zu записей из файла\n", list.size);
     return list;
 }
+
+void save_to_file(const LinkedList *list, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    
+    if (!file) {
+        printf("Ошибка создания файла %s\n", filename);
+        return;
+    }
+    
+    Node *current = list->head;
+    while (current != NULL) {
+        Liver *liver = current->data;
+        fprintf(file, "%u %s %s %s %d %d %d %c %.2lf\n",
+                liver->id, liver->surname, liver->name, liver->patronymic,
+                liver->birth.day, liver->birth.month, liver->birth.year,
+                liver->sex, liver->income);
+        current = current->next;
+    }
+    
+    fclose(file);
+    printf("Данные сохранены в файл %s\n", filename);
+}
+
+void search_by_id(const LinkedList *list, unsigned int id) {
+    Node *current = list->head;
+    
+    while (current != NULL) {
+        if (current->data->id == id) {
+            Liver *l = current->data;
+            printf("Найден житель: ID: %u, %s %s %s, %02d.%02d.%d, %c, Доход: %.2lf\n",
+                   l->id, l->surname, l->name, l->patronymic,
+                   l->birth.day, l->birth.month, l->birth.year,
+                   l->sex, l->income);
+            return;
+        }
+        current = current->next;
+    }
+    
+    printf("Житель с ID %u не найден\n", id);
+} // naher ne nado
+
+void modify_liver(LinkedList *list, HistoryManager *history, unsigned int id) {
+    Node *current = list->head;
+    size_t index = 0;
+    
+    // Поиск жителя
+    while (current != NULL && current->data->id != id) {
+        current = current->next;
+        index++;
+    }
+    
+    if (current == NULL) {
+        printf("Житель с ID %u не найден\n", id);
+        return;
+    }
+    
+    Liver *old_liver = current->data;
+    Liver *new_liver = malloc(sizeof(Liver));
+    *new_liver = *old_liver; // Копируем старые данные
+    
+    printf("Изменение данных жителя (ID: %u):\n", id);
+    printf("Введите новые данные (оставьте пустым для сохранения текущего значения):\n");
+    
+    char input[100];
+    
+    // Фамилия
+    printf("Фамилия [%s]: ", old_liver->surname);
+    if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
+        input[strcspn(input, "\n")] = 0;
+        if (is_valid_name(input)) {
+            strcpy(new_liver->surname, input);
+        } else {
+            printf("Неверная фамилия\n");
+            free(new_liver);
+            return;
+        }
+    }
+    
+    // Имя
+    printf("Имя [%s]: ", old_liver->name);
+    if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
+        input[strcspn(input, "\n")] = 0;
+        if (is_valid_name(input)) {
+            strcpy(new_liver->name, input);
+        } else {
+            printf("Неверное имя\n");
+            free(new_liver);
+            return;
+        }
+    }
+    
+    // Отчество
+    printf("Отчество [%s]: ", old_liver->patronymic);
+    if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
+        input[strcspn(input, "\n")] = 0;
+        strcpy(new_liver->patronymic, input);
+    }
+    
+    // Дата рождения
+    printf("Дата рождения [%02d.%02d.%d] (в формате дд мм гггг): ", 
+           old_liver->birth.day, old_liver->birth.month, old_liver->birth.year);
+    if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
+        Date new_date;
+        if (sscanf(input, "%d %d %d", &new_date.day, &new_date.month, &new_date.year) == 3) {
+            if (is_valid_date(&new_date)) {
+                new_liver->birth = new_date;
+            } else {
+                printf("Неверная дата\n");
+                free(new_liver);
+                return;
+            }
+        }
+    }
+    
+    // Пол
+    printf("Пол [%c] (M/W): ", old_liver->sex);
+    if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
+        char new_sex = toupper(input[0]);
+        if (new_sex == 'M' || new_sex == 'W') {
+            new_liver->sex = new_sex;
+        } else {
+            printf("Неверный пол\n");
+            free(new_liver);
+            return;
+        }
+    }
+    
+    // Доход
+    printf("Доход [%.2lf]: ", old_liver->income);
+    if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
+        double new_income;
+        if (sscanf(input, "%lf", &new_income) == 1 && new_income >= 0) {
+            new_liver->income = new_income;
+        } else {
+            printf("Неверный доход\n");
+            free(new_liver);
+            return;
+        }
+    }
+    
+    // Удаляем старую запись и вставляем новую в правильную позицию
+    delete_at_list(list, index);
+    
+    // Находим правильную позицию для новой записи
+    Node *curr = list->head;
+    size_t new_index = 0;
+    while (curr != NULL) {
+        if (compare_dates(&new_liver->birth, &curr->data->birth) > 0) {
+            break;
+        }
+        curr = curr->next;
+        new_index++;
+    }
+    
+    insert_at_list(list, new_index, new_liver);
+    history->modification_count++;
+    
+    printf("Данные успешно изменены\n");
+}
