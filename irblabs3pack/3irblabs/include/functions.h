@@ -37,7 +37,7 @@ typedef struct {
     unsigned int id;
     char surname[30];
     char name[30];
-    char partonymic[30];
+    char patronymic[30];
     Date birth;
     char sex;
     double income;
