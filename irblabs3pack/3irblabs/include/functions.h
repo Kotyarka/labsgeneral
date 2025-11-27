@@ -48,4 +48,17 @@ typedef struct {
     int year;
 } Date;
 
+typedef struct {
+    LinkedList undo_stack;
+    LinkedList redo_stack;
+    int modification_count;
+} HistoryManager;
+
+typedef struct {
+    int operation_type; // 0 - добавление, 1 - удаление, 2 - изменение
+    Liver *old_data;
+    Liver *new_data;
+    size_t position;
+} Operation;
+
 #endif

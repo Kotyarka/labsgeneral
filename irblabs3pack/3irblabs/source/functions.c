@@ -231,49 +231,45 @@ Liver* peek_stack(const LinkedList *stack) {
     return stack->head->data;
 }
 
-Node* read_from_file(const char* path) {
-    FILE* f = fopen(path, "r");
-    if (!f) { perror("Error opening file"); return NULL; }
-
-    Node* head = NULL;
-    Liver l;
-    while (fscanf(f, "%u %30s %30s %30s %d %d %d %c %lf",
-                  &l.id, l.surname, l.name, l.patronymic,
-                  &l.birth.day, &l.birth.month, &l.birth.year,
-                  &l.sex, &l.income) == 9) {
-        insert_sorted(&head, l);
+LinkedList read_from_file(const char *filename) {
+    LinkedList list = create_list();
+    FILE *file = fopen(filename, "r");
+    
+    if (!file) {
+        printf("Ошибка открытия файла %s\n", filename);
+        return list;
     }
-    fclose(f);
-    return head;
-}
-
-void insert_sorted(Node** head, Liver l) {
-    Node* new_node = (Node*)malloc(sizeof(Node));
-    new_node->data = l;
-    new_node->next = NULL;
-    new_node->prev = NULL;
-
-    if (!*head || compare_dates(l.birth, (*head)->data.birth_date) < 0) {
-        new_node->next = *head;
-        if (*head) {
-            (*head)->prev = new_node;
+    
+    Liver liver;
+    while (fscanf(file, "%u %29s %29s %29s %d %d %d %c %lf",
+                 &liver.id, liver.surname, liver.name, liver.patronymic,
+                 &liver.birth.day, &liver.birth.month, &liver.birth.year,
+                 &liver.sex, &liver.income) == 9) {
+        
+        if (!is_valid_name(liver.surname) || !is_valid_name(liver.name) || 
+            !is_valid_date(&liver.birth) || (liver.sex != 'M' && liver.sex != 'W') ||
+            liver.income < 0) {
+            printf("Пропущена невалидная запись для ID %u\n", liver.id);
+            continue;
         }
-        *head = new_node;
-        return;
+        
+        Liver *new_liver = malloc(sizeof(Liver));
+        *new_liver = liver;
+        
+        Node *current = list.head;
+        size_t index = 0;
+        while (current != NULL) {
+            if (compare_dates(&new_liver->birth, &current->data->birth) > 0) {
+                break;
+            }
+            current = current->next;
+            index++;
+        }
+        
+        insert_at_list(&list, index, new_liver);
     }
-
-    Node* cur = *head;
     
-    while (cur->next && compare_dates(cur->next->data.birth_date, l.birth) <= 0) {
-        cur = cur->next;
-    }
-
-    new_node->next = cur->next;
-    new_node->prev = cur;
-    
-    if (cur->next) {
-        cur->next->prev = new_node;
-    }
-    
-    cur->next = new_node;
+    fclose(file);
+    printf("Прочитано %zu записей из файла\n", list.size);
+    return list;
 }
