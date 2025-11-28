@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <math.h>
 
+#define LOG_FILENAME "tracing.txt"
+
 typedef struct {
     char name;
     int value;
