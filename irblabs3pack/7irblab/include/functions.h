@@ -11,7 +11,9 @@ int parse_expression(char **s);
 int parse_term(char **s);
 int parse_factor(char **s);
 int parse_power(char **s);
-void log_state(FILE *trace, const char *line, const char *opDescription);
-void process_line(FILE *trace, char *line);
+int is_valid_expression(const char *line);
+void log_state(FILE *trace, const char *line, const char *opDescription, int *operation_counter);
+void process_line(FILE *trace, char *line, int *operation_counter);
+
 
 #endif
