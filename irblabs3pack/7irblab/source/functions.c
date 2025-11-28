@@ -18,14 +18,12 @@ InterpreterContext* interpreter_init() {
         return NULL;
     }
     
-    // Инициализация переменных
     for (int i = 0; i < MAX_VARIABLES; i++) {
         context->variables[i].name = 'A' + i;
         context->variables[i].value = 0;
         context->variables[i].initialized = 0;
     }
     
-    // Открываем файл трассировки
     context->log_file = fopen(LOG_FILENAME, "w");
     if (!context->log_file) {
         free(context);

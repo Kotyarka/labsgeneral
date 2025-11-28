@@ -18,4 +18,7 @@ int main(int argc, char* argv[]) {
         fclose(log_file);
         return 1;
     }
+
+    Variable variables[27];
+    initialize_variables(variables);
     
