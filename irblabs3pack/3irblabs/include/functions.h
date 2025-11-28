@@ -1,4 +1,4 @@
-#ifndef FUNCTIONS_H
+    #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
 #include <stdio.h>
@@ -52,6 +52,7 @@ void push_stack(LinkedList *stack, Liver* value);
 Liver* pop_stack(LinkedList *stack);
 Liver* peek_stack(const LinkedList *stack);
 
+void clear_list(LinkedList *list);
 typedef enum {
     OP_ADD,
     OP_DELETE,

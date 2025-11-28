@@ -23,9 +23,27 @@ void erase_list(LinkedList *list) {
     list->size = 0;
 }
 
+void clear_list(LinkedList *list) {
+    if (!list) return;
+    
+    Node *current = list->head;
+    while (current != NULL) {
+        Node *next = current->next;
+        if (current->data) {
+            free(current->data);
+        }
+        free(current);
+        current = next;
+    }
+
+    list->head = NULL;
+    list->tail = NULL;
+    list->size = 0;
+}
+
 void delete_list(LinkedList *list) {
     if (list == NULL) return;
-    erase_list(list);
+    clear_list(list);
 }
 
 void push_back_list(LinkedList *list, Liver *value) {
@@ -145,11 +163,13 @@ void delete_at_list(LinkedList *list, size_t index) {
     if (!list || index >= list->size) return;
 
     if (index == 0) {
-        pop_front_list(list);
+        Liver *data = pop_front_list(list);
+        if (data) free(data);
         return;
     }
     if (index == list->size - 1) {
-        pop_back_list(list);
+        Liver *data = pop_back_list(list);
+        if (data) free(data);
         return;
     }
 
@@ -157,10 +177,13 @@ void delete_at_list(LinkedList *list, size_t index) {
     for (size_t i = 0; i < index; i++)
         current = current->next;
 
+    Liver *data_to_free = current->data;
+    
     current->prev->next = current->next;
     current->next->prev = current->prev;
 
     free(current);
+    free(data_to_free);
     list->size--;
 }
 
@@ -202,6 +225,7 @@ int is_equal_list(const LinkedList *l1, const LinkedList *l2) {
 
     return 1;
 }
+
 void push_stack(LinkedList *stack, Liver *value) {
     push_front_list(stack, value);
 }
@@ -221,19 +245,24 @@ void init_undo_system(UndoSystem *us) {
 }
 
 void clear_undo_system(UndoSystem *us) {
+    if (!us) return;
+    
     while (us->undo_stack.size > 0) {
         UndoOperation *op = (UndoOperation*)pop_stack(&us->undo_stack);
-        if (op->liver_data) free(op->liver_data);
-        if (op->old_data) free(op->old_data);
-        free(op);
+        if (op) {
+            if (op->liver_data) free(op->liver_data);
+            if (op->old_data) free(op->old_data);
+            free(op);
+        }
     }
-    erase_list(&us->undo_stack);
     us->modification_count = 0;
 }
 
 void push_undo_operation(UndoSystem *us, OperationType type, size_t position,
                          Liver *liver_data, Liver *old_data)
 {
+    if (!us) return;
+
     UndoOperation *op = malloc(sizeof(UndoOperation));
     if (!op) return;
 
@@ -273,10 +302,17 @@ int is_valid_date(const Date *date) {
     int days_in_month[] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if (date->day > days_in_month[date->month - 1]) return 0;
 
+    if (date->month == 2 && date->day == 29) {
+        int is_leap = (date->year % 4 == 0 && date->year % 100 != 0) || (date->year % 400 == 0);
+        if (!is_leap) return 0;
+    }
+
     return 1;
 }
 
 int find_liver_position(const LinkedList *list, unsigned int id) {
+    if (!list) return -1;
+    
     Node *cur = list->head;
     size_t pos = 0;
 
@@ -290,11 +326,12 @@ int find_liver_position(const LinkedList *list, unsigned int id) {
 }
 
 size_t find_insert_position(const LinkedList *list, const Date *birth_date) {
+    if (!list || !birth_date) return 0;
+    
     Node *cur = list->head;
     size_t pos = 0;
 
     while (cur) {
-
         if (compare_dates(birth_date, &cur->data->birth) <= 0)
             break;
         cur = cur->next;
@@ -329,6 +366,10 @@ LinkedList read_from_file(const char *filename) {
         }
 
         Liver *l = malloc(sizeof(Liver));
+        if (!l) {
+            printf("Memory allocation failed for ID %u\n", temp.id);
+            continue;
+        }
         *l = temp;
 
         size_t pos = find_insert_position(&list, &l->birth);
@@ -341,6 +382,8 @@ LinkedList read_from_file(const char *filename) {
 }
 
 void save_to_file(const LinkedList *list, const char *filename) {
+    if (!list) return;
+    
     FILE *file = fopen(filename, "w");
     if (!file) {
         printf("Error creating file %s\n", filename);
@@ -363,6 +406,8 @@ void save_to_file(const LinkedList *list, const char *filename) {
 }
 
 void search_by_surname(const LinkedList *list, const char *surname) {
+    if (!list || !surname) return;
+    
     Node *cur = list->head;
     int found = 0;
 
@@ -385,6 +430,8 @@ void search_by_surname(const LinkedList *list, const char *surname) {
 }
 
 void search_by_id(const LinkedList *list, unsigned int id) {
+    if (!list) return;
+    
     Node *cur = list->head;
 
     while (cur) {
@@ -403,10 +450,16 @@ void search_by_id(const LinkedList *list, unsigned int id) {
 }
 
 void add_liver(LinkedList *list, UndoSystem *us) {
+    if (!list || !us) return;
+    
     Liver new_liver;
 
     printf("Enter ID: ");
-    scanf("%u", &new_liver.id);
+    if (scanf("%u", &new_liver.id) != 1) {
+        printf("Invalid ID input.\n");
+        while (getchar() != '\n');
+        return;
+    }
     getchar();
 
     if (find_liver_position(list, new_liver.id) != -1) {
@@ -415,7 +468,10 @@ void add_liver(LinkedList *list, UndoSystem *us) {
     }
 
     printf("Enter surname: ");
-    fgets(new_liver.surname, sizeof(new_liver.surname), stdin);
+    if (!fgets(new_liver.surname, sizeof(new_liver.surname), stdin)) {
+        printf("Error reading surname.\n");
+        return;
+    }
     new_liver.surname[strcspn(new_liver.surname, "\n")] = 0;
     if (!is_valid_name(new_liver.surname)) {
         printf("Invalid surname.\n");
@@ -423,7 +479,10 @@ void add_liver(LinkedList *list, UndoSystem *us) {
     }
 
     printf("Enter name: ");
-    fgets(new_liver.name, sizeof(new_liver.name), stdin);
+    if (!fgets(new_liver.name, sizeof(new_liver.name), stdin)) {
+        printf("Error reading name.\n");
+        return;
+    }
     new_liver.name[strcspn(new_liver.name, "\n")] = 0;
     if (!is_valid_name(new_liver.name)) {
         printf("Invalid name.\n");
@@ -431,11 +490,18 @@ void add_liver(LinkedList *list, UndoSystem *us) {
     }
 
     printf("Enter patronymic: ");
-    fgets(new_liver.patronymic, sizeof(new_liver.patronymic), stdin);
+    if (!fgets(new_liver.patronymic, sizeof(new_liver.patronymic), stdin)) {
+        printf("Error reading patronymic.\n");
+        return;
+    }
     new_liver.patronymic[strcspn(new_liver.patronymic, "\n")] = 0;
 
     printf("Enter birth date (dd mm yyyy): ");
-    scanf("%d %d %d", &new_liver.birth.day, &new_liver.birth.month, &new_liver.birth.year);
+    if (scanf("%d %d %d", &new_liver.birth.day, &new_liver.birth.month, &new_liver.birth.year) != 3) {
+        printf("Invalid date input.\n");
+        while (getchar() != '\n'); 
+        return;
+    }
     getchar();
     if (!is_valid_date(&new_liver.birth)) {
         printf("Invalid date.\n");
@@ -443,7 +509,11 @@ void add_liver(LinkedList *list, UndoSystem *us) {
     }
 
     printf("Enter sex (M/W): ");
-    scanf("%c", &new_liver.sex);
+    if (scanf("%c", &new_liver.sex) != 1) {
+        printf("Invalid sex input.\n");
+        while (getchar() != '\n'); 
+        return;
+    }
     getchar();
     new_liver.sex = toupper(new_liver.sex);
     if (new_liver.sex != 'M' && new_liver.sex != 'W') {
@@ -452,7 +522,11 @@ void add_liver(LinkedList *list, UndoSystem *us) {
     }
 
     printf("Enter income: ");
-    scanf("%lf", &new_liver.income);
+    if (scanf("%lf", &new_liver.income) != 1) {
+        printf("Invalid income input.\n");
+        while (getchar() != '\n'); 
+        return;
+    }
     getchar();
     if (new_liver.income < 0) {
         printf("Invalid income.\n");
@@ -460,6 +534,10 @@ void add_liver(LinkedList *list, UndoSystem *us) {
     }
 
     Liver *copy = malloc(sizeof(Liver));
+    if (!copy) {
+        printf("Memory allocation failed.\n");
+        return;
+    }
     *copy = new_liver;
 
     size_t pos = find_insert_position(list, &copy->birth);
@@ -471,6 +549,8 @@ void add_liver(LinkedList *list, UndoSystem *us) {
 }
 
 void remove_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
+    if (!list || !us) return;
+    
     int pos = find_liver_position(list, id);
     if (pos == -1) {
         printf("Resident not found.\n");
@@ -481,6 +561,10 @@ void remove_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
     if (!l) return;
 
     Liver *backup = malloc(sizeof(Liver));
+    if (!backup) {
+        printf("Memory allocation failed.\n");
+        return;
+    }
     *backup = *l;
 
     delete_at_list(list, pos);
@@ -491,6 +575,8 @@ void remove_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
 }
 
 void modify_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
+    if (!list || !us) return;
+    
     int pos = find_liver_position(list, id);
     if (pos == -1) {
         printf("Resident with ID %u not found.\n", id);
@@ -567,12 +653,21 @@ void modify_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
     delete_at_list(list, pos);
 
     Liver *new_copy = malloc(sizeof(Liver));
+    if (!new_copy) {
+        printf("Memory allocation failed.\n");
+        return;
+    }
     *new_copy = new_liver;
 
     size_t new_pos = find_insert_position(list, &new_copy->birth);
     insert_at_list(list, new_pos, new_copy);
 
     Liver *old_copy = malloc(sizeof(Liver));
+    if (!old_copy) {
+        printf("Memory allocation failed.\n");
+        free(new_copy);
+        return;
+    }
     *old_copy = backup_old;
 
     push_undo_operation(us, OP_MODIFY, pos, old_copy, new_copy);
@@ -581,6 +676,8 @@ void modify_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
 }
 
 void undo_modifications(LinkedList *list, UndoSystem *us) {
+    if (!list || !us) return;
+    
     if (us->modification_count == 0) {
         printf("No operations to undo.\n");
         return;
@@ -607,11 +704,12 @@ void undo_modifications(LinkedList *list, UndoSystem *us) {
 
         case OP_DELETE: {
             Liver *l_copy = malloc(sizeof(Liver));
-            *l_copy = *op->liver_data;
-
-            size_t pos = find_insert_position(list, &l_copy->birth);
-            insert_at_list(list, pos, l_copy);
-            printf("Undone removal of ID %u\n", op->liver_data->id);
+            if (l_copy) {
+                *l_copy = *op->liver_data;
+                size_t pos = find_insert_position(list, &l_copy->birth);
+                insert_at_list(list, pos, l_copy);
+                printf("Undone removal of ID %u\n", op->liver_data->id);
+            }
         } break;
 
         case OP_MODIFY: {
@@ -620,12 +718,12 @@ void undo_modifications(LinkedList *list, UndoSystem *us) {
                 delete_at_list(list, pos);
 
             Liver *old_copy = malloc(sizeof(Liver));
-            *old_copy = *op->liver_data;
-
-            size_t pos2 = find_insert_position(list, &old_copy->birth);
-            insert_at_list(list, pos2, old_copy);
-
-            printf("Undone modification of ID %u\n", op->liver_data->id);
+            if (old_copy) {
+                *old_copy = *op->liver_data;
+                size_t pos2 = find_insert_position(list, &old_copy->birth);
+                insert_at_list(list, pos2, old_copy);
+                printf("Undone modification of ID %u\n", op->liver_data->id);
+            }
         } break;
         }
 
@@ -636,11 +734,12 @@ void undo_modifications(LinkedList *list, UndoSystem *us) {
         us->modification_count--;
     }
 
-    printf("Undo completed. Remaining operations: %d\n",
-           us->modification_count);
+    printf("Undo completed. Remaining operations: %d\n", us->modification_count);
 }
 
 void display_all(const LinkedList *list) {
+    if (!list) return;
+    
     if (list->size == 0) {
         printf("List is empty.\n");
         return;

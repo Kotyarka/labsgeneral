@@ -95,6 +95,7 @@ int main() {
 
     delete_list(&list);
     clear_undo_system(&undo_system);
+    clear_list(&list);
 
     return 0;
 }
