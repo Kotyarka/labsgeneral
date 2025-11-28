@@ -1,19 +1,18 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#define MAX_LINE 256
-
 #include <stdio.h>
+#include <stdbool.h>
 
-void skip_spaces(char **s);
-int get_var_value(char name);
-int parse_expression(char **s);
-int parse_term(char **s);
-int parse_factor(char **s);
-int parse_power(char **s);
-int is_valid_expression(const char *line);
-void log_state(FILE *trace, const char *line, const char *opDescription, int *operation_counter);
-void process_line(FILE *trace, char *line, int *operation_counter);
+#define VARIABLES_COUNT 26
 
+typedef struct {
+    int variables[VARIABLES_COUNT];
+    bool initialized[VARIABLES_COUNT];
+} Interpreter;
 
+void init_interpreter(Interpreter* interpreter);
+bool execute_line(Interpreter* interpreter, const char* line, int line_num, FILE* log_file);
+void log_state(Interpreter* interpreter, const char* command, const char* operation, int line_num, FILE* log_file);
+int fast_power(int base, int exponent);
 #endif

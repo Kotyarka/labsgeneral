@@ -1,28 +1,41 @@
-#include <stdio.h>
-#include <string.h>
 #include "./include/functions.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-// Объявляем глобальные переменные из functions.c
-extern int vars[26];
-extern int initialized[26];
-
-int main() {
-    FILE *trace = fopen("trace.log", "w");
-    if (!trace) {
-        printf("Error: cant open trace.log\n");
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <input_file>\n", argv[0]);
         return 1;
     }
-
-    char line[MAX_LINE];
-    int operation_counter = 1; // Локальный счётчик операций
-
-    while (fgets(line, sizeof(line), stdin)) {
-        line[strcspn(line, "\n")] = 0;
-        if (strlen(line) == 0) continue;
-
-        process_line(trace, line, &operation_counter);
+    
+    FILE* input_file = fopen(argv[1], "r");
+    if (!input_file) {
+        fprintf(stderr, "Error: Cannot open input file %s\n", argv[1]);
+        return 1;
     }
-
-    fclose(trace);
+    
+    FILE* log_file = fopen("trace.log", "w");
+    if (!log_file) {
+        fprintf(stderr, "Error: Cannot create log file\n");
+        fclose(input_file);
+        return 1;
+    }
+    
+    Interpreter interpreter;
+    init_interpreter(&interpreter);
+    
+    char line[256];
+    int line_num = 1;
+    
+    while (fgets(line, sizeof(line), input_file)) {
+        if (!execute_line(&interpreter, line, line_num, log_file)) {
+            fprintf(stderr, "Error: Invalid syntax at line %d\n", line_num);
+        }
+        line_num++;
+    }
+    
+    fclose(input_file);
+    fclose(log_file);
+    
     return 0;
 }

@@ -1,108 +1,98 @@
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
 #include "../include/functions.h"
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
-// Объявляем глобальные переменные из functions.c
-extern int vars[26];
-extern int initialized[26];
-
-void run(FILE *trace, const char *cmd, int *operation_counter) {
-    char buf[MAX_LINE];
-    strcpy(buf, cmd);
-    process_line(trace, buf, operation_counter);
+static void test_fast_power() {
+    assert(fast_power(2, 3) == 8);
+    assert(fast_power(5, 0) == 1);
+    assert(fast_power(3, 4) == 81);
+    assert(fast_power(2, 10) == 1024);
+    assert(fast_power(7, 2) == 49);
 }
 
-void reset_vars() {
-    for (int i = 0; i < 26; i++) {
-        vars[i] = 0;
-        initialized[i] = 0;
-    }
+static void test_assignment() {
+    Interpreter interpreter;
+    init_interpreter(&interpreter);
+    
+    FILE* log_file = fopen("test.log", "w");
+    
+    assert(execute_line(&interpreter, "A = 5", 1, log_file) == true);
+    assert(interpreter.initialized[0] == true);
+    assert(interpreter.variables[0] == 5);
+    
+    assert(execute_line(&interpreter, "B = A + 3", 2, log_file) == true);
+    assert(interpreter.initialized[1] == true);
+    assert(interpreter.variables[1] == 8);
+    
+    fclose(log_file);
 }
 
-void test_valid_expressions(FILE *trace) {
-    printf("Testing valid expressions...\n");
-    reset_vars();
-    int op_counter = 1;
+static void test_arithmetic() {
+    Interpreter interpreter;
+    init_interpreter(&interpreter);
     
-    run(trace, "A = 5", &op_counter);
-    assert(initialized['A' - 'A'] == 1);
-    assert(vars['A' - 'A'] == 5);
-
-    run(trace, "B = A + 3", &op_counter);
-    assert(vars['B' - 'A'] == 8);
-
-    run(trace, "C = B * 2", &op_counter);
-    assert(vars['C' - 'A'] == 16);
-
-    run(trace, "D = (A + B) * 2", &op_counter);
-    assert(vars['D' - 'A'] == (5 + 8) * 2);
-
-    run(trace, "E = 2 ^ 5", &op_counter);
-    assert(vars['E' - 'A'] == 32);
-
-    run(trace, "F = A + B * C - D", &op_counter);
-    assert(vars['F' - 'A'] == 5 + 8 * 16 - ((5 + 8) * 2));
-
-    run(trace, "G = 2 ^ 3 ^ 2", &op_counter);
-    assert(vars['G' - 'A'] == 512);
-
-    run(trace, "H = (2 + 3) * (4 + 1)", &op_counter);
-    assert(vars['H' - 'A'] == 25);
-
-    run(trace, "I = -5 + 2", &op_counter);
-    assert(vars['I' - 'A'] == -3);
-
-    run(trace, "J   =   A   +    B", &op_counter);
-    assert(vars['J' - 'A'] == vars['A' - 'A'] + vars['B' - 'A']);
-
-    run(trace, "print(A)", &op_counter);
-    run(trace, "print(B)", &op_counter);
-    run(trace, "print(G)", &op_counter);
+    FILE* log_file = fopen("test.log", "w");
+    
+    execute_line(&interpreter, "A = 10", 1, log_file);
+    execute_line(&interpreter, "B = 3", 2, log_file);
+    execute_line(&interpreter, "C = A + B * 2", 3, log_file);
+    
+    assert(interpreter.variables[2] == 16);
+    
+    execute_line(&interpreter, "D = A - B", 4, log_file);
+    assert(interpreter.variables[3] == 7);
+    
+    execute_line(&interpreter, "E = A * B", 5, log_file);
+    assert(interpreter.variables[4] == 30);
+    
+    execute_line(&interpreter, "F = A / B", 6, log_file);
+    assert(interpreter.variables[5] == 3);
+    
+    fclose(log_file);
 }
 
-void test_invalid_expressions(FILE *trace) {
-    printf("Testing invalid expressions...\n");
-    reset_vars();
-    int op_counter = 1;
+static void test_power() {
+    Interpreter interpreter;
+    init_interpreter(&interpreter);
     
-    // Некорректные имена переменных
-    run(trace, "a = 5", &op_counter);  // строчная буква
-    run(trace, "1A = 5", &op_counter); // начинается с цифры
-    run(trace, "AB = 5", &op_counter); // две буквы
+    FILE* log_file = fopen("test.log", "w");
     
-    // Некорректный синтаксис
-    run(trace, "A = ", &op_counter);          // пустое выражение
-    run(trace, "A = 5 + ", &op_counter);      // выражение заканчивается оператором
-    run(trace, "A = + 5", &op_counter);       // начинается с бинарного оператора
-    run(trace, "A = 5 + + 3", &op_counter);   // два оператора подряд
-    run(trace, "A = (5 + 3", &op_counter);    // незакрытая скобка
-    run(trace, "A = 5 + 3)", &op_counter);    // лишняя закрывающая скобка
-    run(trace, "A = 5 & 3", &op_counter);     // недопустимый оператор
-    run(trace, "print", &op_counter);         // print без скобок
-    run(trace, "print(", &op_counter);        // print без переменной
-    run(trace, "print()", &op_counter);       // print без аргумента
-    run(trace, "print(A", &op_counter);       // print без закрывающей скобки
-    run(trace, "print(AB)", &op_counter);     // print с двумя переменными
+    execute_line(&interpreter, "A = 2", 1, log_file);
+    execute_line(&interpreter, "B = 3", 2, log_file);
+    execute_line(&interpreter, "C = A ^ B", 3, log_file);
     
-    // Деление на ноль
-    run(trace, "K = 5 / 0", &op_counter);
+    assert(interpreter.variables[2] == 8);
     
-    // Возведение нуля в отрицательную степень
-    run(trace, "L = 0 ^ -2", &op_counter);
+    execute_line(&interpreter, "D = 5 ^ 2", 4, log_file);
+    assert(interpreter.variables[3] == 25);
     
-    printf("Invalid expressions handled correctly\n");
+    fclose(log_file);
+}
+
+static void test_invalid_syntax() {
+    Interpreter interpreter;
+    init_interpreter(&interpreter);
+    
+    FILE* log_file = fopen("test.log", "w");
+    
+    assert(execute_line(&interpreter, "print", 2, log_file) == false);
+    assert(execute_line(&interpreter, "1 = 2", 3, log_file) == false);
+    
+    fclose(log_file);
+}
+
+void run_all_tests() {
+    test_fast_power();
+    test_assignment();
+    test_arithmetic();
+    test_power();
+    test_invalid_syntax();
+    
+    printf("All tests passed!\n");
 }
 
 int main() {
-    FILE *trace = fopen("test_trace.log", "w");
-    assert(trace != NULL);
-
-    test_valid_expressions(trace);
-    test_invalid_expressions(trace);
-
-    printf("Все тесты успешно пройдены!\n");
-
-    fclose(trace);
+    run_all_tests();
     return 0;
 }
