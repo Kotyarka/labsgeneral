@@ -1,0 +1,8 @@
+[1] A = 5
+| A=5 | Assignment
+[2] B = 3
+| A=5, B=3 | Assignment
+[3] C = A + B
+| A=5, B=3, C=8 | Assignment
+[4] print(C)
+| A=5, B=3, C=8 | Print
