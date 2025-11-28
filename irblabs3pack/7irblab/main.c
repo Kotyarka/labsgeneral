@@ -3,7 +3,7 @@
 #include "./include/functions.h"
 
 int main() {
-    trace = fopen("trace.log", "w");
+    FILE *trace = fopen("trace.log", "w");
     if (!trace) {
         printf("Error: cant open trace.log\n");
         return 1;
@@ -15,7 +15,7 @@ int main() {
         line[strcspn(line, "\n")] = 0;
         if (strlen(line) == 0) continue;
 
-        process_line(line);
+        process_line(trace, line);
     }
 
     fclose(trace);

@@ -3,10 +3,10 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 int vars[26] = {0};
 int initialized[26] = {0};
-FILE *trace;
 
 void skip_spaces(char **s) {
     while (**s == ' ' || **s == '\t')
@@ -81,7 +81,7 @@ int parse_power(char **s) {
     return value;
 }
 
-void log_state(const char *line, const char *opDescription) {
+void log_state(FILE *trace, const char *line, const char *opDescription) {
     static int counter = 1;
 
     fprintf(trace, "[%d] %s | ", counter, line);
@@ -99,7 +99,7 @@ void log_state(const char *line, const char *opDescription) {
     counter++;
 }
 
-void process_line(char *line) {
+void process_line(FILE *trace, char *line) {
     char original[MAX_LINE];
     strcpy(original, line);
 
@@ -118,7 +118,7 @@ void process_line(char *line) {
 
         printf("%d\n", val);
 
-        log_state(original, "Print");
+        log_state(trace, original, "Print");
         return;
     }
 
@@ -134,11 +134,11 @@ void process_line(char *line) {
             vars[var - 'A'] = val;
             initialized[var - 'A'] = 1;
 
-            log_state(original, "Assignment");
+            log_state(trace, original, "Assignment");
             return;
         }
     }
 
     parse_expression(&s);
-    log_state(original, "Arithmetic operation");
+    log_state(trace, original, "Arithmetic operation");
 }
