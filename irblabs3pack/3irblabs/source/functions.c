@@ -26,15 +26,14 @@ void erase_list(LinkedList *list) {
 void delete_list(LinkedList *list) {
     if (list == NULL) return;
     erase_list(list);
-    free(list);
 }
 
 void push_back_list(LinkedList *list, Liver *value) {
     if (list == NULL) return;
 
-    Node *new_node = (Node*)malloc(sizeof(Node));
-    if (new_node == NULL) {
-        fprintf(stderr, "Malloc failes");
+    Node *new_node = malloc(sizeof(Node));
+    if (!new_node) {
+        fprintf(stderr, "Malloc failed\n");
         return;
     }
 
@@ -42,180 +41,156 @@ void push_back_list(LinkedList *list, Liver *value) {
     new_node->next = NULL;
     new_node->prev = list->tail;
 
-    if (list->tail != NULL){
+    if (list->tail != NULL)
         list->tail->next = new_node;
-    } else {
-        list->head=new_node;
-    }
+    else
+        list->head = new_node;
+
     list->tail = new_node;
     list->size++;
 }
 
 void push_front_list(LinkedList *list, Liver *value) {
     if (list == NULL) return;
-    
-    Node *new_node = (Node*)malloc(sizeof(Node));
-    if (new_node == NULL) {
+
+    Node *new_node = malloc(sizeof(Node));
+    if (!new_node) {
         fprintf(stderr, "Malloc failed\n");
         return;
     }
-    
+
     new_node->data = value;
     new_node->prev = NULL;
     new_node->next = list->head;
-    
-    if (list->head != NULL) {
+
+    if (list->head != NULL)
         list->head->prev = new_node;
-    } else {
+    else
         list->tail = new_node;
-    }
-    
+
     list->head = new_node;
     list->size++;
 }
 
 Liver* pop_back_list(LinkedList *list) {
-    if (list == NULL || list->tail == NULL) {
-        fprintf(stderr, "List is empty\n");
-        return 0;
-    }
-    
+    if (!list || !list->tail) return NULL;
+
     Node *last = list->tail;
     Liver *value = last->data;
-    
-    if (last->prev != NULL) {
+
+    if (last->prev) {
         last->prev->next = NULL;
         list->tail = last->prev;
     } else {
         list->head = NULL;
         list->tail = NULL;
     }
-    
+
     free(last);
     list->size--;
     return value;
 }
 
 Liver* pop_front_list(LinkedList *list) {
-    if (list == NULL || list->head == NULL) {
-        fprintf(stderr, "List is empty\n");
-        return 0;
-    }
-    
+    if (!list || !list->head) return NULL;
+
     Node *first = list->head;
     Liver *value = first->data;
-    
-    if (first->next != NULL) {
+
+    if (first->next) {
         first->next->prev = NULL;
         list->head = first->next;
     } else {
         list->head = NULL;
         list->tail = NULL;
     }
-    
+
     free(first);
     list->size--;
     return value;
 }
 
 void insert_at_list(LinkedList *list, size_t index, Liver *value) {
-    if (list == NULL || index > list->size) {
-        fprintf(stderr, "Invalid index\n");
-        return;
-    }
-    
+    if (!list || index > list->size) return;
+
     if (index == 0) {
         push_front_list(list, value);
         return;
     }
-    
     if (index == list->size) {
         push_back_list(list, value);
         return;
     }
-    
+
     Node *current = list->head;
-    for (size_t i = 0; i < index; i++) {
+    for (size_t i = 0; i < index; i++)
         current = current->next;
-    }
-    
-    Node *new_node = (Node*)malloc(sizeof(Node));
-    if (new_node == NULL) {
+
+    Node *new_node = malloc(sizeof(Node));
+    if (!new_node) {
         fprintf(stderr, "Malloc failed\n");
         return;
     }
-    
+
     new_node->data = value;
     new_node->prev = current->prev;
     new_node->next = current;
-    
+
     current->prev->next = new_node;
     current->prev = new_node;
-    
     list->size++;
 }
 
 void delete_at_list(LinkedList *list, size_t index) {
-    if (list == NULL || index >= list->size) {
-        fprintf(stderr, "Invalid index\n");
-        return;
-    }
-    
+    if (!list || index >= list->size) return;
+
     if (index == 0) {
         pop_front_list(list);
         return;
     }
-    
     if (index == list->size - 1) {
         pop_back_list(list);
         return;
     }
-    
+
     Node *current = list->head;
-    for (size_t i = 0; i < index; i++) {
+    for (size_t i = 0; i < index; i++)
         current = current->next;
-    }
-    
+
     current->prev->next = current->next;
     current->next->prev = current->prev;
-    
+
     free(current);
     list->size--;
 }
 
 Liver* get_at_list(const LinkedList *list, size_t index) {
-    if (list == NULL || index >= list->size) {
-        fprintf(stderr, "Invalid index\n");
-        return 0;
-    }
-    
+    if (!list || index >= list->size) return NULL;
+
     Node *current = list->head;
-    for (size_t i = 0; i < index; i++) {
+    for (size_t i = 0; i < index; i++)
         current = current->next;
-    }
-    
+
     return current->data;
 }
 
 int is_equal_list(const LinkedList *l1, const LinkedList *l2) {
-    if (l1 == NULL || l2 == NULL) return 0;
+    if (!l1 || !l2) return 0;
     if (l1->size != l2->size) return 0;
-    
-    Node *node1 = l1->head;
-    Node *node2 = l2->head;
-    
-    while (node1 != NULL && node2 != NULL) {
-        if (node1->data != node2->data) {
-            return 0;
-        }
-        node1 = node1->next;
-        node2 = node2->next;
+
+    Node *a = l1->head;
+    Node *b = l2->head;
+
+    while (a && b) {
+        if (a->data != b->data) return 0;
+        a = a->next;
+        b = b->next;
     }
-    
+
     return 1;
 }
 
-void push_stack(LinkedList *stack, Liver* value) {
+void push_stack(LinkedList *stack, Liver *value) {
     push_front_list(stack, value);
 }
 
@@ -224,326 +199,467 @@ Liver* pop_stack(LinkedList *stack) {
 }
 
 Liver* peek_stack(const LinkedList *stack) {
-    if (stack == NULL || stack->head == NULL) {
-        fprintf(stderr, "Stack is empty\n");
-        return 0;
-    }
+    if (!stack || !stack->head) return NULL;
     return stack->head->data;
+}
+
+void init_undo_system(UndoSystem *us) {
+    us->undo_stack = create_list();
+    us->modification_count = 0;
+}
+
+void clear_undo_system(UndoSystem *us) {
+    while (us->undo_stack.size > 0) {
+        UndoOperation *op = (UndoOperation*)pop_stack(&us->undo_stack);
+        if (op->liver_data) free(op->liver_data);
+        if (op->old_data) free(op->old_data);
+        free(op);
+    }
+    erase_list(&us->undo_stack);
+    us->modification_count = 0;
+}
+
+void push_undo_operation(UndoSystem *us, OperationType type, size_t position,
+                         Liver *liver_data, Liver *old_data)
+{
+    UndoOperation *op = malloc(sizeof(UndoOperation));
+    if (!op) return;
+
+    op->type = type;
+    op->position = position;
+
+    op->liver_data = liver_data ? malloc(sizeof(Liver)) : NULL;
+    if (liver_data && op->liver_data)
+        *op->liver_data = *liver_data;
+
+    op->old_data = old_data ? malloc(sizeof(Liver)) : NULL;
+    if (old_data && op->old_data)
+        *op->old_data = *old_data;
+
+    push_stack(&us->undo_stack, (Liver*)op);
+    us->modification_count++;
+}
+
+int compare_dates(const Date *d1, const Date *d2) {
+    if (d1->year != d2->year) return d1->year - d2->year;
+    if (d1->month != d2->month) return d1->month - d2->month;
+    return d1->day - d2->day;
+}
+
+int is_valid_name(const char *name) {
+    if (!name || strlen(name) == 0) return 0;
+    for (size_t i = 0; i < strlen(name); i++)
+        if (!isalpha(name[i])) return 0;
+    return 1;
+}
+
+int is_valid_date(const Date *date) {
+    if (date->year < 1900 || date->year > 2024) return 0;
+    if (date->month < 1 || date->month > 12) return 0;
+    if (date->day < 1 || date->day > 31) return 0;
+
+    int days_in_month[] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (date->day > days_in_month[date->month - 1]) return 0;
+
+    return 1;
+}
+
+int find_liver_position(const LinkedList *list, unsigned int id) {
+    Node *cur = list->head;
+    size_t pos = 0;
+
+    while (cur) {
+        if (cur->data->id == id)
+            return pos;
+        cur = cur->next;
+        pos++;
+    }
+    return -1;
+}
+
+size_t find_insert_position(const LinkedList *list, const Date *birth_date) {
+    Node *cur = list->head;
+    size_t pos = 0;
+
+    while (cur) {
+        if (compare_dates(birth_date, &cur->data->birth) > 0)
+            break;
+        cur = cur->next;
+        pos++;
+    }
+    return pos;
 }
 
 LinkedList read_from_file(const char *filename) {
     LinkedList list = create_list();
+
     FILE *file = fopen(filename, "r");
-    
     if (!file) {
-        printf("Ошибка открытия файла %s\n", filename);
+        printf("Error opening file: %s\n", filename);
         return list;
     }
-    
-    Liver liver;
+
+    Liver temp;
     while (fscanf(file, "%u %29s %29s %29s %d %d %d %c %lf",
-                 &liver.id, liver.surname, liver.name, liver.patronymic,
-                 &liver.birth.day, &liver.birth.month, &liver.birth.year,
-                 &liver.sex, &liver.income) == 9) {
-        
-        if (!is_valid_name(liver.surname) || !is_valid_name(liver.name) || 
-            !is_valid_date(&liver.birth) || (liver.sex != 'M' && liver.sex != 'W') ||
-            liver.income < 0) {
-            printf("Пропущена невалидная запись для ID %u\n", liver.id);
+                  &temp.id, temp.surname, temp.name, temp.patronymic,
+                  &temp.birth.day, &temp.birth.month, &temp.birth.year,
+                  &temp.sex, &temp.income) == 9)
+    {
+        if (!is_valid_name(temp.surname) ||
+            !is_valid_name(temp.name) ||
+            !is_valid_date(&temp.birth) ||
+            (temp.sex != 'M' && temp.sex != 'W') ||
+            temp.income < 0)
+        {
+            printf("Skipped invalid record (ID %u)\n", temp.id);
             continue;
         }
-        
-        Liver *new_liver = malloc(sizeof(Liver));
-        *new_liver = liver;
-        
-        Node *current = list.head;
-        size_t index = 0;
-        while (current != NULL) {
-            if (compare_dates(&new_liver->birth, &current->data->birth) > 0) {
-                break;
-            }
-            current = current->next;
-            index++;
-        }
-        
-        insert_at_list(&list, index, new_liver);
+
+        Liver *l = malloc(sizeof(Liver));
+        *l = temp;
+
+        size_t pos = find_insert_position(&list, &l->birth);
+        insert_at_list(&list, pos, l);
     }
-    
+
     fclose(file);
-    printf("Прочитано %zu записей из файла\n", list.size);
+    printf("Loaded: %zu records\n", list.size);
     return list;
 }
 
 void save_to_file(const LinkedList *list, const char *filename) {
     FILE *file = fopen(filename, "w");
-    
     if (!file) {
-        printf("Ошибка создания файла %s\n", filename);
+        printf("Error creating file %s\n", filename);
         return;
     }
-    
-    Node *current = list->head;
-    while (current != NULL) {
-        Liver *liver = current->data;
+
+    Node *cur = list->head;
+
+    while (cur) {
+        Liver *l = cur->data;
         fprintf(file, "%u %s %s %s %d %d %d %c %.2lf\n",
-                liver->id, liver->surname, liver->name, liver->patronymic,
-                liver->birth.day, liver->birth.month, liver->birth.year,
-                liver->sex, liver->income);
-        current = current->next;
+                l->id, l->surname, l->name, l->patronymic,
+                l->birth.day, l->birth.month, l->birth.year,
+                l->sex, l->income);
+        cur = cur->next;
     }
-    
+
     fclose(file);
-    printf("Данные сохранены в файл %s\n", filename);
+    printf("Data saved to %s\n", filename);
+}
+
+void search_by_surname(const LinkedList *list, const char *surname) {
+    Node *cur = list->head;
+    int found = 0;
+
+    printf("Search by surname: %s\n", surname);
+
+    while (cur) {
+        if (strcmp(cur->data->surname, surname) == 0) {
+            Liver *l = cur->data;
+            printf("ID %u - %s %s %s, %02d.%02d.%04d, %c, income %.2lf\n",
+                   l->id, l->surname, l->name, l->patronymic,
+                   l->birth.day, l->birth.month, l->birth.year,
+                   l->sex, l->income);
+            found = 1;
+        }
+        cur = cur->next;
+    }
+
+    if (!found)
+        printf("No records found\n");
 }
 
 void search_by_id(const LinkedList *list, unsigned int id) {
-    Node *current = list->head;
-    
-    while (current != NULL) {
-        if (current->data->id == id) {
-            Liver *l = current->data;
-            printf("Найден житель: ID: %u, %s %s %s, %02d.%02d.%d, %c, Доход: %.2lf\n",
+    Node *cur = list->head;
+
+    while (cur) {
+        if (cur->data->id == id) {
+            Liver *l = cur->data;
+            printf("ID %u - %s %s %s, %02d.%02d.%04d, %c, income %.2lf\n",
                    l->id, l->surname, l->name, l->patronymic,
                    l->birth.day, l->birth.month, l->birth.year,
                    l->sex, l->income);
             return;
         }
-        current = current->next;
+        cur = cur->next;
     }
-    
-    printf("Житель с ID %u не найден\n", id);
-} // naher ne nado
 
-void modify_liver(LinkedList *list, HistoryManager *history, unsigned int id) {
-    Node *current = list->head;
-    size_t index = 0;
-    
-    // Поиск жителя
-    while (current != NULL && current->data->id != id) {
-        current = current->next;
-        index++;
-    }
-    
-    if (current == NULL) {
-        printf("Житель с ID %u не найден\n", id);
+    printf("Resident with ID %u not found\n", id);
+}
+
+void add_liver(LinkedList *list, UndoSystem *us) {
+    Liver new_liver;
+
+    printf("Enter ID: ");
+    scanf("%u", &new_liver.id);
+    getchar();
+
+    if (find_liver_position(list, new_liver.id) != -1) {
+        printf("Error: ID already exists.\n");
         return;
     }
-    
-    Liver *old_liver = current->data;
-    Liver *new_liver = malloc(sizeof(Liver));
-    *new_liver = *old_liver; // Копируем старые данные
-    
-    printf("Изменение данных жителя (ID: %u):\n", id);
-    printf("Введите новые данные (оставьте пустым для сохранения текущего значения):\n");
-    
-    char input[100];
-    
-    // Фамилия
-    printf("Фамилия [%s]: ", old_liver->surname);
+
+    printf("Enter surname: ");
+    fgets(new_liver.surname, sizeof(new_liver.surname), stdin);
+    new_liver.surname[strcspn(new_liver.surname, "\n")] = 0;
+    if (!is_valid_name(new_liver.surname)) {
+        printf("Invalid surname.\n");
+        return;
+    }
+
+    printf("Enter name: ");
+    fgets(new_liver.name, sizeof(new_liver.name), stdin);
+    new_liver.name[strcspn(new_liver.name, "\n")] = 0;
+    if (!is_valid_name(new_liver.name)) {
+        printf("Invalid name.\n");
+        return;
+    }
+
+    printf("Enter patronymic: ");
+    fgets(new_liver.patronymic, sizeof(new_liver.patronymic), stdin);
+    new_liver.patronymic[strcspn(new_liver.patronymic, "\n")] = 0;
+
+    printf("Enter birth date (dd mm yyyy): ");
+    scanf("%d %d %d", &new_liver.birth.day, &new_liver.birth.month, &new_liver.birth.year);
+    getchar();
+    if (!is_valid_date(&new_liver.birth)) {
+        printf("Invalid date.\n");
+        return;
+    }
+
+    printf("Enter sex (M/W): ");
+    scanf("%c", &new_liver.sex);
+    getchar();
+    new_liver.sex = toupper(new_liver.sex);
+    if (new_liver.sex != 'M' && new_liver.sex != 'W') {
+        printf("Invalid sex.\n");
+        return;
+    }
+
+    printf("Enter income: ");
+    scanf("%lf", &new_liver.income);
+    getchar();
+    if (new_liver.income < 0) {
+        printf("Invalid income.\n");
+        return;
+    }
+
+    Liver *copy = malloc(sizeof(Liver));
+    *copy = new_liver;
+
+    size_t pos = find_insert_position(list, &copy->birth);
+    insert_at_list(list, pos, copy);
+
+    push_undo_operation(us, OP_ADD, pos, copy, NULL);
+
+    printf("Resident added.\n");
+}
+
+void remove_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
+    int pos = find_liver_position(list, id);
+    if (pos == -1) {
+        printf("Resident not found.\n");
+        return;
+    }
+
+    Liver *l = get_at_list(list, pos);
+    if (!l) return;
+
+    Liver *backup = malloc(sizeof(Liver));
+    *backup = *l;
+
+    delete_at_list(list, pos);
+
+    push_undo_operation(us, OP_DELETE, pos, backup, NULL);
+
+    printf("Resident removed.\n");
+}
+
+void modify_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
+    int pos = find_liver_position(list, id);
+    if (pos == -1) {
+        printf("Resident with ID %u not found.\n", id);
+        return;
+    }
+
+    Liver *old = get_at_list(list, pos);
+    Liver backup_old = *old;
+
+    Liver new_liver = *old;
+
+    getchar();
+    char input[128];
+
+    printf("Surname [%s]: ", old->surname);
     if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
         input[strcspn(input, "\n")] = 0;
-        if (is_valid_name(input)) {
-            strcpy(new_liver->surname, input);
-        } else {
-            printf("Неверная фамилия\n");
-            free(new_liver);
+        if (!is_valid_name(input)) {
+            printf("Invalid surname.\n");
             return;
         }
+        strcpy(new_liver.surname, input);
     }
-    
-    // Имя
-    printf("Имя [%s]: ", old_liver->name);
+
+    printf("Name [%s]: ", old->name);
     if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
         input[strcspn(input, "\n")] = 0;
-        if (is_valid_name(input)) {
-            strcpy(new_liver->name, input);
-        } else {
-            printf("Неверное имя\n");
-            free(new_liver);
+        if (!is_valid_name(input)) {
+            printf("Invalid name.\n");
             return;
         }
+        strcpy(new_liver.name, input);
     }
-    
-    // Отчество
-    printf("Отчество [%s]: ", old_liver->patronymic);
+
+    printf("Patronymic [%s]: ", old->patronymic);
     if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
         input[strcspn(input, "\n")] = 0;
-        strcpy(new_liver->patronymic, input);
+        strcpy(new_liver.patronymic, input);
     }
-    
-    // Дата рождения
-    printf("Дата рождения [%02d.%02d.%d] (в формате дд мм гггг): ", 
-           old_liver->birth.day, old_liver->birth.month, old_liver->birth.year);
+
+    printf("Birth date [%02d.%02d.%04d] (dd mm yyyy): ",
+           old->birth.day, old->birth.month, old->birth.year);
     if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
         Date new_date;
         if (sscanf(input, "%d %d %d", &new_date.day, &new_date.month, &new_date.year) == 3) {
-            if (is_valid_date(&new_date)) {
-                new_liver->birth = new_date;
-            } else {
-                printf("Неверная дата\n");
-                free(new_liver);
+            if (!is_valid_date(&new_date)) {
+                printf("Invalid date.\n");
                 return;
             }
+            new_liver.birth = new_date;
         }
     }
-    
-    // Пол
-    printf("Пол [%c] (M/W): ", old_liver->sex);
+
+    printf("Sex [%c] (M/W): ", old->sex);
     if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
-        char new_sex = toupper(input[0]);
-        if (new_sex == 'M' || new_sex == 'W') {
-            new_liver->sex = new_sex;
-        } else {
-            printf("Неверный пол\n");
-            free(new_liver);
+        char s = toupper(input[0]);
+        if (s != 'M' && s != 'W') {
+            printf("Invalid sex.\n");
             return;
         }
+        new_liver.sex = s;
     }
-    
-    // Доход
-    printf("Доход [%.2lf]: ", old_liver->income);
+
+    printf("Income [%.2lf]: ", old->income);
     if (fgets(input, sizeof(input), stdin) && strlen(input) > 1) {
-        double new_income;
-        if (sscanf(input, "%lf", &new_income) == 1 && new_income >= 0) {
-            new_liver->income = new_income;
-        } else {
-            printf("Неверный доход\n");
-            free(new_liver);
+        double inc;
+        if (sscanf(input, "%lf", &inc) != 1 || inc < 0) {
+            printf("Invalid income.\n");
             return;
         }
+        new_liver.income = inc;
     }
-    
-    // Удаляем старую запись и вставляем новую в правильную позицию
-    delete_at_list(list, index);
-    
-    // Находим правильную позицию для новой записи
-    Node *curr = list->head;
-    size_t new_index = 0;
-    while (curr != NULL) {
-        if (compare_dates(&new_liver->birth, &curr->data->birth) > 0) {
-            break;
-        }
-        curr = curr->next;
-        new_index++;
-    }
-    
-    insert_at_list(list, new_index, new_liver);
-    history->modification_count++;
-    
-    printf("Данные успешно изменены\n");
+
+    delete_at_list(list, pos);
+
+    Liver *new_copy = malloc(sizeof(Liver));
+    *new_copy = new_liver;
+
+    size_t new_pos = find_insert_position(list, &new_copy->birth);
+    insert_at_list(list, new_pos, new_copy);
+
+    Liver *old_copy = malloc(sizeof(Liver));
+    *old_copy = backup_old;
+
+    push_undo_operation(us, OP_MODIFY, pos, old_copy, new_copy);
+
+    printf("Data modified.\n");
 }
 
-void add_liver(LinkedList *list, HistoryManager *history) {
-    Liver *new_liver = malloc(sizeof(Liver));
-    
-    printf("Добавление нового жителя:\n");
-    
-    // ID
-    printf("Введите ID: ");
-    scanf("%u", &new_liver->id);
-    getchar(); // consume newline
-    
-    // Проверка уникальности ID
-    Node *current = list->head;
-    while (current != NULL) {
-        if (current->data->id == new_liver->id) {
-            printf("Ошибка: ID %u уже существует\n", new_liver->id);
-            free(new_liver);
-            return;
+void undo_modifications(LinkedList *list, UndoSystem *us) {
+    if (us->modification_count == 0) {
+        printf("No operations to undo.\n");
+        return;
+    }
+
+    int undo_count = us->modification_count / 2;
+    if (undo_count == 0)
+        undo_count = 1;
+
+    printf("Undoing %d operations...\n", undo_count);
+
+    for (int i = 0; i < undo_count; i++) {
+        UndoOperation *op = (UndoOperation*)pop_stack(&us->undo_stack);
+        if (!op) break;
+
+        switch (op->type) {
+        case OP_ADD: {
+            int pos = find_liver_position(list, op->liver_data->id);
+            if (pos != -1) {
+                delete_at_list(list, pos);
+                printf("Undone addition of ID %u\n", op->liver_data->id);
+            }
+        } break;
+
+        case OP_DELETE: {
+            Liver *l_copy = malloc(sizeof(Liver));
+            *l_copy = *op->liver_data;
+
+            size_t pos = find_insert_position(list, &l_copy->birth);
+            insert_at_list(list, pos, l_copy);
+            printf("Undone removal of ID %u\n", op->liver_data->id);
+        } break;
+
+        case OP_MODIFY: {
+            int pos = find_liver_position(list, op->liver_data->id);
+            if (pos != -1)
+                delete_at_list(list, pos);
+
+            Liver *old_copy = malloc(sizeof(Liver));
+            *old_copy = *op->liver_data;
+
+            size_t pos2 = find_insert_position(list, &old_copy->birth);
+            insert_at_list(list, pos2, old_copy);
+
+            printf("Undone modification of ID %u\n", op->liver_data->id);
+        } break;
         }
-        current = current->next;
+
+        if (op->liver_data) free(op->liver_data);
+        if (op->old_data) free(op->old_data);
+        free(op);
+
+        us->modification_count--;
     }
-    
-    // Фамилия
-    printf("Введите фамилию: ");
-    fgets(new_liver->surname, sizeof(new_liver->surname), stdin);
-    new_liver->surname[strcspn(new_liver->surname, "\n")] = 0;
-    if (!is_valid_name(new_liver->surname)) {
-        printf("Неверная фамилия\n");
-        free(new_liver);
-        return;
-    }
-    
-    // Имя
-    printf("Введите имя: ");
-    fgets(new_liver->name, sizeof(new_liver->name), stdin);
-    new_liver->name[strcspn(new_liver->name, "\n")] = 0;
-    if (!is_valid_name(new_liver->name)) {
-        printf("Неверное имя\n");
-        free(new_liver);
-        return;
-    }
-    
-    // Отчество
-    printf("Введите отчество: ");
-    fgets(new_liver->patronymic, sizeof(new_liver->patronymic), stdin);
-    new_liver->patronymic[strcspn(new_liver->patronymic, "\n")] = 0;
-    
-    // Дата рождения
-    printf("Введите дату рождения (дд мм гггг): ");
-    scanf("%d %d %d", &new_liver->birth.day, &new_liver->birth.month, &new_liver->birth.year);
-    getchar(); // consume newline
-    if (!is_valid_date(&new_liver->birth)) {
-        printf("Неверная дата\n");
-        free(new_liver);
-        return;
-    }
-    
-    // Пол
-    printf("Введите пол (M/W): ");
-    scanf("%c", &new_liver->sex);
-    getchar(); // consume newline
-    new_liver->sex = toupper(new_liver->sex);
-    if (new_liver->sex != 'M' && new_liver->sex != 'W') {
-        printf("Неверный пол\n");
-        free(new_liver);
-        return;
-    }
-    
-    // Доход
-    printf("Введите доход: ");
-    scanf("%lf", &new_liver->income);
-    getchar(); // consume newline
-    if (new_liver->income < 0) {
-        printf("Неверный доход\n");
-        free(new_liver);
-        return;
-    }
-    
-    // Вставка в упорядоченный список
-    Node *curr = list->head;
-    size_t index = 0;
-    while (curr != NULL) {
-        if (compare_dates(&new_liver->birth, &curr->data->birth) > 0) {
-            break;
-        }
-        curr = curr->next;
-        index++;
-    }
-    
-    insert_at_list(list, index, new_liver);
-    history->modification_count++;
-    
-    printf("Житель успешно добавлен\n");
+
+    printf("Undo completed. Remaining operations: %d\n",
+           us->modification_count);
 }
 
-// Функция для удаления жителя
-void remove_liver(LinkedList *list, HistoryManager *history, unsigned int id) {
-    Node *current = list->head;
-    size_t index = 0;
-    
-    while (current != NULL && current->data->id != id) {
-        current = current->next;
-        index++;
-    }
-    
-    if (current == NULL) {
-        printf("Житель с ID %u не найден\n", id);
+void display_all(const LinkedList *list) {
+    if (list->size == 0) {
+        printf("List is empty.\n");
         return;
     }
-    
-    delete_at_list(list, index);
-    history->modification_count++;
-    
-    printf("Житель с ID %u удален\n", id);
+
+    printf("Total records: %zu\n", list->size);
+    printf("=================================================================\n");
+    printf("ID | Surname | Name | Patronymic | Date | Sex | Income\n");
+    printf("=================================================================\n");
+
+    Node *cur = list->head;
+    while (cur) {
+        Liver *l = cur->data;
+        printf("%u | %s %s %s | %02d.%02d.%04d | %c | %.2lf\n",
+               l->id, l->surname, l->name, l->patronymic,
+               l->birth.day, l->birth.month, l->birth.year,
+               l->sex, l->income);
+        cur = cur->next;
+    }
+    printf("=================================================================\n");
+}
+
+void print_menu() {
+    printf("\n=== Menu ===\n");
+    printf("1. Show all residents\n");
+    printf("2. Search by surname\n");
+    printf("3. Search by ID\n");
+    printf("4. Add resident\n");
+    printf("5. Modify data\n");
+    printf("6. Remove resident\n");
+    printf("7. Save to file\n");
+    printf("8. Undo changes\n");
+    printf("9. Exit\n");
+    printf("Choose action: ");
 }
