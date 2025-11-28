@@ -38,11 +38,13 @@ int main() {
 
                 case 3: {
                     printf("Enter ID: ");
-                    unsigned int id;
-                    if (sscanf(input, "%u", &id) == 1)
-                        search_by_id(&list, id);
-                    else
-                        printf("Invalid ID.\n");
+                    if (fgets(input, sizeof(input), stdin)) {
+                        unsigned int id;
+                        if (sscanf(input, "%u", &id) == 1)
+                            search_by_id(&list, id);
+                        else
+                            printf("Invalid ID.\n");
+                    }
                 } break;
 
                 case 4:
