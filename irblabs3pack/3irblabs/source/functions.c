@@ -182,14 +182,26 @@ int is_equal_list(const LinkedList *l1, const LinkedList *l2) {
     Node *b = l2->head;
 
     while (a && b) {
-        if (a->data != b->data) return 0;
+        Liver *liverA = a->data;
+        Liver *liverB = b->data;
+        
+        if (liverA->id != liverB->id ||
+            strcmp(liverA->surname, liverB->surname) != 0 ||
+            strcmp(liverA->name, liverB->name) != 0 ||
+            strcmp(liverA->patronymic, liverB->patronymic) != 0 ||
+            liverA->birth.day != liverB->birth.day ||
+            liverA->birth.month != liverB->birth.month ||
+            liverA->birth.year != liverB->birth.year ||
+            liverA->sex != liverB->sex ||
+            liverA->income != liverB->income)
+            return 0;
+        
         a = a->next;
         b = b->next;
     }
 
     return 1;
 }
-
 void push_stack(LinkedList *stack, Liver *value) {
     push_front_list(stack, value);
 }
@@ -282,7 +294,8 @@ size_t find_insert_position(const LinkedList *list, const Date *birth_date) {
     size_t pos = 0;
 
     while (cur) {
-        if (compare_dates(birth_date, &cur->data->birth) > 0)
+
+        if (compare_dates(birth_date, &cur->data->birth) <= 0)
             break;
         cur = cur->next;
         pos++;
