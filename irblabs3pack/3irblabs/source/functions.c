@@ -432,3 +432,118 @@ void modify_liver(LinkedList *list, HistoryManager *history, unsigned int id) {
     
     printf("Данные успешно изменены\n");
 }
+
+void add_liver(LinkedList *list, HistoryManager *history) {
+    Liver *new_liver = malloc(sizeof(Liver));
+    
+    printf("Добавление нового жителя:\n");
+    
+    // ID
+    printf("Введите ID: ");
+    scanf("%u", &new_liver->id);
+    getchar(); // consume newline
+    
+    // Проверка уникальности ID
+    Node *current = list->head;
+    while (current != NULL) {
+        if (current->data->id == new_liver->id) {
+            printf("Ошибка: ID %u уже существует\n", new_liver->id);
+            free(new_liver);
+            return;
+        }
+        current = current->next;
+    }
+    
+    // Фамилия
+    printf("Введите фамилию: ");
+    fgets(new_liver->surname, sizeof(new_liver->surname), stdin);
+    new_liver->surname[strcspn(new_liver->surname, "\n")] = 0;
+    if (!is_valid_name(new_liver->surname)) {
+        printf("Неверная фамилия\n");
+        free(new_liver);
+        return;
+    }
+    
+    // Имя
+    printf("Введите имя: ");
+    fgets(new_liver->name, sizeof(new_liver->name), stdin);
+    new_liver->name[strcspn(new_liver->name, "\n")] = 0;
+    if (!is_valid_name(new_liver->name)) {
+        printf("Неверное имя\n");
+        free(new_liver);
+        return;
+    }
+    
+    // Отчество
+    printf("Введите отчество: ");
+    fgets(new_liver->patronymic, sizeof(new_liver->patronymic), stdin);
+    new_liver->patronymic[strcspn(new_liver->patronymic, "\n")] = 0;
+    
+    // Дата рождения
+    printf("Введите дату рождения (дд мм гггг): ");
+    scanf("%d %d %d", &new_liver->birth.day, &new_liver->birth.month, &new_liver->birth.year);
+    getchar(); // consume newline
+    if (!is_valid_date(&new_liver->birth)) {
+        printf("Неверная дата\n");
+        free(new_liver);
+        return;
+    }
+    
+    // Пол
+    printf("Введите пол (M/W): ");
+    scanf("%c", &new_liver->sex);
+    getchar(); // consume newline
+    new_liver->sex = toupper(new_liver->sex);
+    if (new_liver->sex != 'M' && new_liver->sex != 'W') {
+        printf("Неверный пол\n");
+        free(new_liver);
+        return;
+    }
+    
+    // Доход
+    printf("Введите доход: ");
+    scanf("%lf", &new_liver->income);
+    getchar(); // consume newline
+    if (new_liver->income < 0) {
+        printf("Неверный доход\n");
+        free(new_liver);
+        return;
+    }
+    
+    // Вставка в упорядоченный список
+    Node *curr = list->head;
+    size_t index = 0;
+    while (curr != NULL) {
+        if (compare_dates(&new_liver->birth, &curr->data->birth) > 0) {
+            break;
+        }
+        curr = curr->next;
+        index++;
+    }
+    
+    insert_at_list(list, index, new_liver);
+    history->modification_count++;
+    
+    printf("Житель успешно добавлен\n");
+}
+
+// Функция для удаления жителя
+void remove_liver(LinkedList *list, HistoryManager *history, unsigned int id) {
+    Node *current = list->head;
+    size_t index = 0;
+    
+    while (current != NULL && current->data->id != id) {
+        current = current->next;
+        index++;
+    }
+    
+    if (current == NULL) {
+        printf("Житель с ID %u не найден\n", id);
+        return;
+    }
+    
+    delete_at_list(list, index);
+    history->modification_count++;
+    
+    printf("Житель с ID %u удален\n", id);
+}
