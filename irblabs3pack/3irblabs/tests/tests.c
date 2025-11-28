@@ -50,7 +50,10 @@ void test_list_functions() {
     assert(list.tail->data->id == 3);
     free(popped);
     
-    delete_at_list(&list, 0);
+    // Освобождаем оставшийся элемент перед удалением списка
+    popped = pop_back_list(&list);
+    free(popped);
+    
     assert(list.size == 0);
     assert(list.head == NULL);
     assert(list.tail == NULL);
@@ -107,6 +110,8 @@ void test_undo_system() {
 
     // Добавление операции
     push_undo_operation(&us, OP_ADD, 0, copy, NULL);
+    free(copy); // Освобождаем исходную копию, так как внутри функции сделали дубликат
+
     assert(us.modification_count == 1);
     assert(us.undo_stack.size == 1);
 
@@ -118,7 +123,6 @@ void test_undo_system() {
     erase_list(&list);
     printf("Undo system test passed!\n");
 }
-
 
 void test_position_functions() {
     printf("Testing position functions...\n");
@@ -152,6 +156,12 @@ void test_position_functions() {
     assert(find_insert_position(&list, &older_date) == 0);
     assert(find_insert_position(&list, &middle_date) == 1);
     assert(find_insert_position(&list, &younger_date) == 3);
+    
+    // Освобождаем все элементы перед удалением списка
+    while (list.size > 0) {
+        Liver *popped = pop_back_list(&list);
+        free(popped);
+    }
     
     erase_list(&list);
     printf("Position functions test passed!\n");
@@ -218,6 +228,16 @@ void test_list_equality() {
     push_back_list(&list2, l3);
     
     assert(is_equal_list(&list1, &list2) == 0);
+    
+    // Освобождаем все элементы перед удалением списков
+    while (list1.size > 0) {
+        Liver *popped = pop_back_list(&list1);
+        free(popped);
+    }
+    while (list2.size > 0) {
+        Liver *popped = pop_back_list(&list2);
+        free(popped);
+    }
     
     erase_list(&list1);
     erase_list(&list2);
