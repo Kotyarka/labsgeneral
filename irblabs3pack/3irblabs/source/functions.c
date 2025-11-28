@@ -174,9 +174,9 @@ void delete_at_list(LinkedList *list, size_t index) {
     }
 
     Node *current = list->head;
-    for (size_t i = 0; i < index; i++)
+    for (size_t i = 0; i < index; i++) {
         current = current->next;
-
+    }
     Liver *data_to_free = current->data;
     
     current->prev->next = current->next;
@@ -570,7 +570,7 @@ void remove_liver(LinkedList *list, UndoSystem *us, unsigned int id) {
     delete_at_list(list, pos);
 
     push_undo_operation(us, OP_DELETE, pos, backup, NULL);
-
+    free(backup);
     printf("Resident removed.\n");
 }
 
@@ -710,6 +710,9 @@ void undo_modifications(LinkedList *list, UndoSystem *us) {
                 insert_at_list(list, pos, l_copy);
                 printf("Undone removal of ID %u\n", op->liver_data->id);
             }
+            if (op->liver_data) free(op->liver_data);
+            if (op->old_data) free(op->old_data);
+            free(op);
         } break;
 
         case OP_MODIFY: {
