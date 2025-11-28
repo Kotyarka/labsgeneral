@@ -1,69 +1,144 @@
 #include "../include/functions.h"
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <math.h>
 
-void remove_spaces(char* str) {
-    char* i = str;
-    char* j = str;
-    while (*j != '\0') {
-        *i = *j++;
-        if (*i != ' ') {
-            i++;
+int vars[26] = {0};
+int initialized[26] = {0};
+FILE *trace;
+
+void skip_spaces(char **s) {
+    while (**s == ' ' || **s == '\t')
+        (*s)++;
+}
+
+int get_var_value(char name) {
+    int id = name - 'A';
+    if (!initialized[id]) {
+        printf("Error: variable %c didnt initialise\n", name);
+        return 0;
+    }
+    return vars[id];
+}
+
+int parse_expression(char **s) {
+    int value = parse_term(s);
+    skip_spaces(s);
+    while (**s == '+' || **s == '-') {
+        char op = **s;
+        (*s)++;
+        int right = parse_term(s);
+        if (op == '+') value += right;
+        else value -= right;
+        skip_spaces(s);
+    }
+    return value;
+}
+
+int parse_term(char **s) {
+    int value = parse_factor(s);
+    skip_spaces(s);
+    while (**s == '*' || **s == '/') {
+        char op = **s;
+        (*s)++;
+        int right = parse_factor(s);
+        if (op == '*') value *= right;
+        else value /= right;
+        skip_spaces(s);
+    }
+    return value;
+}
+
+int parse_factor(char **s) {
+    return parse_power(s);
+}
+
+int parse_power(char **s) {
+    skip_spaces(s);
+    int value;
+
+    if (isalpha(**s)) {
+        value = get_var_value(**s);
+        (*s)++;
+    } else if (isdigit(**s) || (**s == '-' && isdigit((*s)[1]))) {
+        value = strtol(*s, s, 10);
+    } else if (**s == '(') {
+        (*s)++;
+        value = parse_expression(s);
+        if (**s == ')') (*s)++;
+    } else {
+        printf("syntax error\n");
+        return 0;
+    }
+
+    skip_spaces(s);
+    if (**s == '^') {
+        (*s)++;
+        int right = parse_power(s);
+        value = (int) pow(value, right);
+    }
+    return value;
+}
+
+void log_state(const char *line, const char *opDescription) {
+    static int counter = 1;
+
+    fprintf(trace, "[%d] %s | ", counter, line);
+
+    int first = 1;
+    for (int i = 0; i < 26; i++) {
+        if (initialized[i]) {
+            if (!first) fprintf(trace, ", ");
+            fprintf(trace, "%c=%d", 'A' + i, vars[i]);
+            first = 0;
         }
     }
-    *i = '\0';
+
+    fprintf(trace, " | %s\n", opDescription);
+    counter++;
 }
 
-InterpreterContext* interpreter_init() {
-    InterpreterContext* context = (InterpreterContext*)malloc(sizeof(InterpreterContext));
-    if (!context) {
-        return NULL;
-    }
-    
-    for (int i = 0; i < MAX_VARIABLES; i++) {
-        context->variables[i].name = 'A' + i;
-        context->variables[i].value = 0;
-        context->variables[i].initialized = 0;
-    }
-    
-    context->log_file = fopen(LOG_FILENAME, "w");
-    if (!context->log_file) {
-        free(context);
-        return NULL;
-    }
-    
-    return context;
-}
+void process_line(char *line) {
+    char original[MAX_LINE];
+    strcpy(original, line);
 
-void interpreter_cleanup(InterpreterContext* context) {
-    if (context) {
-        if (context->log_file) {
-            fclose(context->log_file);
-        }
-        free(context);
-    }
-}
-int get_variable_index(char name) {
-    if (name >= 'A' && name <= 'Z') {
-        return name - 'A';
-    }
-    return -1;
-}
+    char *s = line;
+    skip_spaces(&s);
 
-int evaluate_expression(char* expr) {
-    char* current = expr;
-    int result = parse_term(&current);
-    
-    while (*current == '+' || *current == '-') {
-        char op = *current;
-        current++;
-        int right = parse_term(&current);
-        
-        if (op == '+') {
-            result = result + right;
-        } else {
-            result = result - right;
+    if (strncmp(s, "print", 5) == 0) {
+        s += 5;
+        skip_spaces(&s);
+
+        if (*s == '(') s++;
+        skip_spaces(&s);
+
+        char var = *s;
+        int val = get_var_value(var);
+
+        printf("%d\n", val);
+
+        log_state(original, "Print");
+        return;
+    }
+
+    if (isalpha(*s)) {
+        char var = *s;
+        s++;
+        skip_spaces(&s);
+
+        if (*s == '=') {
+            s++;
+            int val = parse_expression(&s);
+
+            vars[var - 'A'] = val;
+            initialized[var - 'A'] = 1;
+
+            log_state(original, "Assignment");
+            return;
         }
     }
-    
-    return result;
-}
 
+    parse_expression(&s);
+    log_state(original, "Arithmetic operation");
+}

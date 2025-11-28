@@ -1,24 +1,23 @@
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
 
-#define LOG_FILENAME "tracing.txt"
+#define MAX_LINE 256
 
-typedef struct {
-    char name;
-    int value;
-    int initialized;
-} Variable;
+extern int vars[26];
+extern int initialized[26];
+extern FILE *trace;
 
-typedef struct {
-    Variable variables[27];
-    FILE *log_file;
-} InterpreterContext;
+void skip_spaces(char **s);
+int get_var_value(char name);
 
-InterpreterContext* interpreter_init();
-void interpreter_cleanup(InterpreterContext* context);
-int process_line(InterpreterContext* context, char* line, int line_num);
+int parse_expression(char **s);
+int parse_term(char **s);
+int parse_factor(char **s);
+int parse_power(char **s);
 
-int evaluate_expression(char* expr);
+void log_state(const char *line, const char *opDescription);
+void process_line(char *line);
+
+#endif

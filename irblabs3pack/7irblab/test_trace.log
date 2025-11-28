@@ -1,0 +1,13 @@
+[1] A = 5 | A=5 | Assignment
+[2] B = A + 3 | A=5, B=8 | Assignment
+[3] C = B * 2 | A=5, B=8, C=16 | Assignment
+[4] D = (A + B) * 2 | A=5, B=8, C=16, D=26 | Assignment
+[5] E = 2 ^ 5 | A=5, B=8, C=16, D=26, E=32 | Assignment
+[6] F = A + B * C - D | A=5, B=8, C=16, D=26, E=32, F=107 | Assignment
+[7] G = 2 ^ 3 ^ 2 | A=5, B=8, C=16, D=26, E=32, F=107, G=512 | Assignment
+[8] print(A) | A=5, B=8, C=16, D=26, E=32, F=107, G=512 | Print
+[9] print(B) | A=5, B=8, C=16, D=26, E=32, F=107, G=512 | Print
+[10] print(G) | A=5, B=8, C=16, D=26, E=32, F=107, G=512 | Print
+[11] H = (2 + 3) * (4 + 1) | A=5, B=8, C=16, D=26, E=32, F=107, G=512, H=25 | Assignment
+[12] I = -5 + 2 | A=5, B=8, C=16, D=26, E=32, F=107, G=512, H=25, I=-3 | Assignment
+[13] J   =   A   +    B | A=5, B=8, C=16, D=26, E=32, F=107, G=512, H=25, I=-3, J=13 | Assignment
