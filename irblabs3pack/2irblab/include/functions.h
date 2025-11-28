@@ -58,7 +58,9 @@
     int is_equal_vector(const Vector *v1, const Vector *v2)                                              \
     {                                                                                                    \
         if (!v1 || !v2)                                                                                  \
-            return 0;                                                                                    \
+            return 0;                                                                                   \
+        if (v1 == v2)                                                                                      \
+            return 1;                                                                                  \
         if (v1->size != v2->size)                                                                        \
             return 0;                                                                                    \
                                                                                                          \
